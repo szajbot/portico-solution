@@ -17,7 +17,7 @@ public class StacjaBeznzynowaFederate {
 
     private RTIambassador rtiamb;
     private StacjaBeznzynowaAmbassador fedamb;
-    private final double timeStep           = 10.0;
+    private final double timeStep = 10.0;
 
     private int storageHlaHandle;
 
