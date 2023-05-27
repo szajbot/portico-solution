@@ -1,0 +1,5 @@
+# ignore this idea like things to avoid adding them to project
+.idea/
+lib/
+logs/
+out/

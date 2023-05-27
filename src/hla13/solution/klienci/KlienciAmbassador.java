@@ -2,7 +2,7 @@ package hla13.solution.klienci;
 
 import hla.rti.LogicalTime;
 import hla.rti.jlc.NullFederateAmbassador;
-import hla13.Example13Federate;
+import hla13.solution.stacjaBenzynowa.StacjaBeznzynowaAmbassador;
 import org.portico.impl.hla13.types.DoubleTime;
 
 
@@ -45,14 +45,14 @@ public class KlienciAmbassador extends NullFederateAmbassador {
     public void announceSynchronizationPoint( String label, byte[] tag )
     {
         log( "Synchronization point announced: " + label );
-        if( label.equals(Example13Federate.READY_TO_RUN) )
+        if( label.equals(StacjaBeznzynowaAmbassador.READY_TO_RUN) )
             this.isAnnounced = true;
     }
 
     public void federationSynchronized( String label )
     {
         log( "Federation Synchronized: " + label );
-        if( label.equals(Example13Federate.READY_TO_RUN) )
+        if( label.equals(StacjaBeznzynowaAmbassador.READY_TO_RUN) )
             this.isReadyToRun = true;
     }
 

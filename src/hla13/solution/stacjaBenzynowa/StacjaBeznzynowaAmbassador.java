@@ -17,6 +17,8 @@ public class StacjaBeznzynowaAmbassador extends NullFederateAmbassador {
     //                    STATIC VARIABLES
     //----------------------------------------------------------
 
+    public static final String READY_TO_RUN = "ReadyToRun";
+
     //----------------------------------------------------------
     //                   INSTANCE VARIABLES
     //----------------------------------------------------------
@@ -65,14 +67,14 @@ public class StacjaBeznzynowaAmbassador extends NullFederateAmbassador {
     public void announceSynchronizationPoint( String label, byte[] tag )
     {
         log( "Synchronization point announced: " + label );
-        if( label.equals(Example13Federate.READY_TO_RUN) )
+        if( label.equals(READY_TO_RUN) )
             this.isAnnounced = true;
     }
 
     public void federationSynchronized( String label )
     {
         log( "Federation Synchronized: " + label );
-        if( label.equals(Example13Federate.READY_TO_RUN) )
+        if( label.equals(READY_TO_RUN) )
             this.isReadyToRun = true;
     }
 
