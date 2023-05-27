@@ -1,0 +1,32 @@
+(FED
+  (Federation solution)
+  (FEDversion v1.3)
+  (spaces
+    (space TestSpace
+      (dimension TestDimension)
+    )
+    (space OtherSpace
+      (dimension OtherDimension)
+    )
+  )
+
+  (objects
+    (class ObjectRoot
+      (attribute privilegeToDelete reliable timestamp)
+      (class RTIprivate)
+      (class Storage
+        (attribute stock reliable timestamp TestSpace)
+      )
+    )
+  )
+  (interactions
+    (class InteractionRoot reliable timestamp
+      (class RTIprivate reliable timestamp)
+      (class Finish reliable timestamp)
+      (class NewClient reliable timestamp TestSpace
+         (parameter clientId)
+         (parameter petrolType)
+      )
+    )
+  )
+)
