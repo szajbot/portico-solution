@@ -19,7 +19,6 @@ public class StacjaBeznzynowaFederate {
     private StacjaBeznzynowaAmbassador fedamb;
     private final double timeStep           = 10.0;
 
-//    private int stock                       = 10;
     private int storageHlaHandle;
 
 
@@ -81,18 +80,10 @@ public class StacjaBeznzynowaFederate {
                     fedamb.federateTime = externalEvent.getTime();
                     switch (externalEvent.getEventType()) {
                         case NEW_CLIENT:
-//                           tutaj zmiany na obiekcie StacjaBenzynowa + log
                             log("New client arrived " +
                                     "clientId: " + externalEvent.getNumbers().toString() +
                                     "petrolType: " + externalEvent.getMessages().get(0));
                             break;
-//                        case ADD:
-//                            this.addToStock(externalEvent.getQty());
-//                            break;
-//
-//                        case GET:
-//                            this.getFromStock(externalEvent.getQty());
-//                            break;
                     }
                 }
                 fedamb.externalEvents.clear();
@@ -100,8 +91,6 @@ public class StacjaBeznzynowaFederate {
 
             if(fedamb.grantedTime == timeToAdvance) {
                 timeToAdvance += fedamb.federateLookahead;
-//                log("Updating stock at time: " + timeToAdvance);
-//                updateHLAObject(timeToAdvance);
                 fedamb.federateTime = timeToAdvance;
             }
 
@@ -109,24 +98,6 @@ public class StacjaBeznzynowaFederate {
         }
 
     }
-
-//    public void addToStock(int qty) {
-//        this.stock += qty;
-//        log("Added "+ qty + " at time: "+ fedamb.federateTime +", current stock: " + this.stock);
-//    }
-//
-//    public void getFromStock(int qty) {
-//
-//        if(this.stock - qty < 0) {
-//            log("Not enough product at stock");
-//        }
-//        else {
-//            this.stock -= qty;
-//            log("Removed "+ qty + " at time: "+ fedamb.federateTime +", current stock: " + this.stock);
-//        }
-//
-//
-//    }
 
     private void waitForUser()
     {
@@ -144,22 +115,8 @@ public class StacjaBeznzynowaFederate {
     }
 
     private void registerStorageObject() throws RTIexception {
-//        int classHandle = rtiamb.getObjectClassHandle("ObjectRoot.Storage");
-//        this.storageHlaHandle = rtiamb.registerObjectInstance(classHandle);
+        // TODO helpful in future
     }
-
-//    private void updateHLAObject(double time) throws RTIexception{
-//        SuppliedAttributes attributes =
-//                RtiFactoryFactory.getRtiFactory().createSuppliedAttributes();
-//
-//        int classHandle = rtiamb.getObjectClass(storageHlaHandle);
-//        int stockHandle = rtiamb.getAttributeHandle( "stock", classHandle );
-//        byte[] stockValue = EncodingHelpers.encodeInt(stock);
-//
-//        attributes.add(stockHandle, stockValue);
-//        LogicalTime logicalTime = convertTime( time );
-//        rtiamb.updateAttributeValues( storageHlaHandle, attributes, "actualize stock".getBytes(), logicalTime );
-//    }
 
     private void advanceTime( double timeToAdvance ) throws RTIexception {
         fedamb.isAdvancing = true;
@@ -174,26 +131,13 @@ public class StacjaBeznzynowaFederate {
 
     private void publishAndSubscribe() throws RTIexception {
 
+//        TODO EXAMPLE USAGE OF OBJECT INSTED OF INTERACTION
 //        int classHandle = rtiamb.getObjectClassHandle("ObjectRoot.Storage");
 //        int stockHandle    = rtiamb.getAttributeHandle( "stock", classHandle );
 
 //        AttributeHandleSet attributes =
 //                RtiFactoryFactory.getRtiFactory().createAttributeHandleSet();
 //        attributes.add( stockHandle );
-
-//        rtiamb.publishObjectClass(classHandle, attributes);
-
-//        int addProductHandle = rtiamb.getInteractionClassHandle( "InteractionRoot.AddProduct" );
-//        fedamb.addProductHandle = addProductHandle;
-//        rtiamb.subscribeInteractionClass( addProductHandle );
-
-//        int getProductHandle = rtiamb.getInteractionClassHandle( "InteractionRoot.GetProduct" );
-//        fedamb.getProductHandle = getProductHandle;
-//        rtiamb.subscribeInteractionClass( getProductHandle );
-
-//        int commandHandle = rtiamb.getInteractionClassHandle( "InteractionRoot.TestCommand" );
-//        fedamb.commandHandle = commandHandle;
-//        rtiamb.subscribeInteractionClass( commandHandle );
 
         int newClientHandle = rtiamb.getInteractionClassHandle( "InteractionRoot.NewClient" );
         fedamb.newClientHandle = newClientHandle;

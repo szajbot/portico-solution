@@ -6,7 +6,6 @@ import hla.rti.jlc.NullFederateAmbassador;
 import hla.rti.EventRetractionHandle;
 import hla.rti.LogicalTime;
 import hla.rti.ReceivedInteraction;
-import hla13.Example13Federate;
 import org.portico.impl.hla13.types.DoubleTime;
 
 import java.util.ArrayList;
@@ -115,6 +114,7 @@ public class StacjaBeznzynowaAmbassador extends NullFederateAmbassador {
                                    LogicalTime theTime,
                                    EventRetractionHandle eventRetractionHandle ) {
 
+//        TODO add more interactions then do proper log builder
         StringBuilder builder = new StringBuilder( "Interaction Received:" );
         log(builder.toString());
 
@@ -133,47 +133,6 @@ public class StacjaBeznzynowaAmbassador extends NullFederateAmbassador {
 
             }
         }
-
-//        if(interactionClass == addProductHandle) {
-//            try {
-//                int qty = EncodingHelpers.decodeInt(theInteraction.getValue(0));
-//                double time =  convertTime(theTime);
-//                externalEvents.add(new ExternalEvent(qty, ExternalEvent.EventType.ADD , time));
-//                builder.append("AddProduct , time=" + time);
-//                builder.append(" qty=").append(qty);
-//                builder.append( "\n" );
-//
-//            } catch (ArrayIndexOutOfBounds ignored) {
-//
-//            }
-//
-//        } else if (interactionClass == getProductHandle) {
-//            try {
-//                int qty = EncodingHelpers.decodeInt(theInteraction.getValue(0));
-//                double time =  convertTime(theTime);
-//                externalEvents.add(new ExternalEvent(qty, ExternalEvent.EventType.GET , time));
-//                builder.append( "GetProduct , time=" + time );
-//                builder.append(" qty=").append(qty);
-//                builder.append( "\n" );
-//
-//            } catch (ArrayIndexOutOfBounds ignored) {
-//
-//            }
-//        } else if (interactionClass == commandHandle) {
-//            try {
-//                String command = EncodingHelpers.decodeString(theInteraction.getValue(0));
-//                double time =  convertTime(theTime);
-//                externalEvents.add(new ExternalEvent(15, ExternalEvent.EventType.TEST , time));
-//                builder.append( "TestCommand , time=" + time );
-//                builder.append(command);
-//                builder.append( "\n" );
-//
-//            } catch (ArrayIndexOutOfBounds ignored) {
-//
-//            }
-
-//        log( builder.toString() );
-//    }
     }
 
 }
