@@ -24,10 +24,7 @@ public class ClientsFederate {
     private ClientsAmbassador fedamb;
     private final double timeStep = 10.0;
 
-
     private ArrayList<Client> clients = new ArrayList<>();
-    private int clientId = 0;
-    private int clientHlaHandle;
 
     public void runFederate() throws RTIexception {
 
@@ -47,7 +44,7 @@ public class ClientsFederate {
 
         fedamb = new ClientsAmbassador();
         rtiamb.joinFederationExecution(FEDERATE_NAME, FEDERATION_NAME, fedamb);
-        log("Joined Federation as" + FEDERATE_NAME);
+        log("Joined Federation as " + FEDERATE_NAME);
 
         rtiamb.registerFederationSynchronizationPoint(READY_TO_RUN, null);
 
@@ -70,22 +67,23 @@ public class ClientsFederate {
         log("Published and Subscribed");
 
 
-//        while (fedamb.running) {
-//            advanceTime(randomTime());
-//            sendInteraction(fedamb.federateTime + fedamb.federateLookahead);
-//            rtiamb.tick();
-//        }
-//        TODO this is for test use case
-        for (int i = 0; i < ITERATIONS; i++) {
-            // register new clients
-            int clentHandle = registerClient();
-            clients.add(createClient(clentHandle));
-
-
-            // 9.3 request a time advance and wait until we get it
-            advanceTime(1.0);
-            log("Time Advanced to " + fedamb.federateTime);
+        while (fedamb.running) {
+            advanceTime(randomTime());
+            int clientHandle = registerClient();
+            clients.add(createClient(clientHandle, fedamb.federateTime + fedamb.federateLookahead));
+            rtiamb.tick();
         }
+//        TODO this is for test use case
+//        for (int i = 0; i < ITERATIONS; i++) {
+//            // register new clients
+//            int clentHandle = registerClient();
+//            clients.add(createClient(clentHandle));
+//
+//
+//            // 9.3 request a time advance and wait until we get it
+//            advanceTime(1.0);
+//            log("Time Advanced to " + fedamb.federateTime);
+//        }
 
         for (Client client : clients) {
             deleteObject(client.id);
@@ -141,7 +139,7 @@ public class ClientsFederate {
         return rtiamb.registerObjectInstance(clientHandle);
     }
 
-    private Client createClient(int clientHandle) {
+    private Client createClient(int clientHandle, double timeStep) {
 
         Random rd = new Random();
         Client.PetrolType[] values = Client.PetrolType.values();
@@ -175,8 +173,9 @@ public class ClientsFederate {
             //////////////////////////
             // do the actual update //
             //////////////////////////
-            rtiamb.updateAttributeValues(clientHandle, attributes, generateTag());
-            log("Registered Client, handle=" + clientHandle);
+            LogicalTime time = convertTime(timeStep);
+            rtiamb.updateAttributeValues(clientHandle, attributes, "tag".getBytes(), time);
+            log("Registered Client, handle=" + clientHandle +", petrolT="+petrolType+", fuelQ="+fuelQuantity+", washO="+washOption);
             return client;
         } catch (Exception e) {
             log("Client not created!");
@@ -192,38 +191,10 @@ public class ClientsFederate {
         rtiamb.deleteObjectInstance(handle, generateTag());
     }
 
-    private void sendInteraction(double timeStep) throws RTIexception {
-        SuppliedParameters parameters =
-                RtiFactoryFactory.getRtiFactory().createSuppliedParameters();
-
-        Random random = new Random();
-        Client.PetrolType petrolType;
-        if (random.nextInt(2) == 0) {
-            petrolType = Client.PetrolType.ON;
-        } else {
-            petrolType = Client.PetrolType.BENZYNA;
-        }
-
-        byte[] petrolTypeByte = EncodingHelpers.encodeString(petrolType.name());
-        byte[] clientIdByte = EncodingHelpers.encodeInt(++clientId);
-
-        int interactionHandle = rtiamb.getInteractionClassHandle("InteractionRoot.NewClient");
-        int clientIdHandle = rtiamb.getParameterHandle("clientId", interactionHandle);
-        int petrolTypeHandle = rtiamb.getParameterHandle("petrolType", interactionHandle);
-
-        parameters.add(clientIdHandle, clientIdByte);
-        parameters.add(petrolTypeHandle, petrolTypeByte);
-
-//        klienci.add(new Klient(petrolType, clientNumber));
-
-        LogicalTime time = convertTime(timeStep);
-        rtiamb.sendInteraction(interactionHandle, parameters, "tag".getBytes(), time);
-    }
 
     private void publishClient() throws RTIexception {
 
         int clientHandle = rtiamb.getObjectClassHandle("ObjectRoot.Client");
-//        this.clientHlaHandle = rtiamb.registerObjectInstance(clientHandle);
 
         int idHandle = rtiamb.getAttributeHandle("clientId", clientHandle);
         int fuelHandle = rtiamb.getAttributeHandle("petrolType", clientHandle);
