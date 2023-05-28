@@ -6,9 +6,13 @@ import hla.rti.jlc.NullFederateAmbassador;
 import hla.rti.EventRetractionHandle;
 import hla.rti.LogicalTime;
 import hla.rti.ReceivedInteraction;
+import hla13.solution.klienci.Client;
+import javafx.util.Pair;
 import org.portico.impl.hla13.types.DoubleTime;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 
 
 public class GasStationAmbassador extends NullFederateAmbassador {
@@ -36,12 +40,22 @@ public class GasStationAmbassador extends NullFederateAmbassador {
 
     protected boolean running = true;
 
-    protected int newClientHandle = 0;
-    protected int test2Handle = 0;
-    protected int test3Handle = 0;
+    protected int newClientHandle;
+    protected ArrayList<Integer> newClientInstances = new ArrayList<>();
+//    protected int test2Handle = 0;
+//    protected int test3Handle = 0;
 
-    protected ArrayList<ExternalEvent> externalEvents = new ArrayList<>();
+//    protected ArrayList<ExternalEvent> externalEvents = new ArrayList<>();
+    protected ArrayList<ReceivedClient> receivedClients = new ArrayList<>();
 
+    class PairComparator implements Comparator<Pair<Integer, byte[]>> {
+        @Override
+        public int compare(Pair<Integer, byte[]> pair1, Pair<Integer, byte[]> pair2) {
+            Integer key1 = pair1.getKey();
+            Integer key2 = pair2.getKey();
+            return key1.compareTo(key2);
+        }
+    }
 
     private double convertTime(LogicalTime logicalTime) {
         // PORTICO SPECIFIC!!
@@ -70,6 +84,104 @@ public class GasStationAmbassador extends NullFederateAmbassador {
         log("Federation Synchronized: " + label);
         if (label.equals(READY_TO_RUN))
             this.isReadyToRun = true;
+    }
+
+    public void discoverObjectInstance(int theObject,
+                                       int theObjectClass,
+                                       String objectName) {
+
+        if (theObjectClass == newClientHandle) {
+            log("Received new object client");
+            newClientInstances.add(theObject);
+        } else {
+            log("Sth strange happen");
+        }
+
+    }
+
+    public void reflectAttributeValues(int theObject,
+                                       ReflectedAttributes theAttributes,
+                                       byte[] tag) {
+        // just pass it on to the other method for printing purposes
+        // passing null as the time will let the other method know it
+        // it from us, not from the RTI
+        reflectAttributeValues(theObject, theAttributes, tag, null, null);
+    }
+
+    public void reflectAttributeValues(int theObject,
+                                       ReflectedAttributes theAttributes,
+                                       byte[] tag,
+                                       LogicalTime theTime,
+                                       EventRetractionHandle retractionHandle) {
+
+
+        if (newClientInstances.contains(theObject)) {
+            try {
+                log("ReceivedClient");
+                ArrayList<Pair<Integer, byte[]>> listOfPairs = new ArrayList<>();
+                for (int i = 0; i < theAttributes.size(); i++) {
+                    listOfPairs.add(new Pair<>(
+                            theAttributes.getAttributeHandle(i),
+                            theAttributes.getValue(i)
+                            )
+                    );
+                }
+
+                PairComparator pairComparator = new PairComparator();
+                Collections.sort(listOfPairs, pairComparator);
+
+                receivedClients.add(new ReceivedClient(
+                        EncodingHelpers.decodeInt(listOfPairs.get(0).getValue()),
+                        Client.PetrolType.valueOf(EncodingHelpers.decodeString(listOfPairs.get(1).getValue())),
+                        EncodingHelpers.decodeFloat(listOfPairs.get(2).getValue()),
+                        EncodingHelpers.decodeBoolean(listOfPairs.get(3).getValue())));
+
+//                TODO if u wna to see what inside
+//                for (Pair<Integer, byte[]> pair : listOfPairs) {
+//                    System.out.println(pair.getKey() + ": " + pair.getValue());
+//                }
+
+
+            } catch (ArrayIndexOutOfBounds e) {
+                throw new RuntimeException(e);
+            }
+        } else {
+            log("Some strange thing happen");
+        }
+//        StringBuilder builder = new StringBuilder("Reflection for object:");
+//
+//        builder.append(" handle=" + theObject);
+//        builder.append(", tag=" + EncodingHelpers.decodeString(tag));
+//        if (theTime != null) {
+//            builder.append(", time=" + convertTime(theTime));
+//        }
+//
+//        builder.append(", attributeCount=" + theAttributes.size());
+//        builder.append("\n");
+//        for (int i = 0; i < theAttributes.size(); i++) {
+//            try {
+//                builder.append("\tattributeHandle=");
+//                builder.append(theAttributes.getAttributeHandle(i));
+//                builder.append(", attributeValue=");
+//                builder.append(EncodingHelpers.decodeString(theAttributes.getValue(i)));
+//                builder.append("\n");
+//            } catch (ArrayIndexOutOfBounds aioob) {
+//                // won't happen
+//            }
+//        }
+
+//        log(builder.toString());
+    }
+
+//    public void removeObjectInstance(int theObject, byte[] userSuppliedTag) {
+//        log("Object Removed: handle=" + theObject);
+//    }
+
+    public void removeObjectInstance(int theObject,
+                                     byte[] userSuppliedTag,
+                                     LogicalTime theTime,
+                                     EventRetractionHandle retractionHandle) {
+//        log("Object Removed: handle=" + theObject);
     }
 
     /**
@@ -106,25 +218,25 @@ public class GasStationAmbassador extends NullFederateAmbassador {
                                    LogicalTime theTime,
                                    EventRetractionHandle eventRetractionHandle) {
 
-//        TODO add more interactions then do proper log builder
-        StringBuilder builder = new StringBuilder("Interaction Received:");
-        log(builder.toString());
-
-        if (interactionClass == newClientHandle) {
-            try {
-                log(String.valueOf(theInteraction.size()));
-                Integer number = EncodingHelpers.decodeInt(theInteraction.getValue(0));
-                String message = EncodingHelpers.decodeString(theInteraction.getValue(1));
-                double time = convertTime(theTime);
-                ArrayList<String> messages = new ArrayList<>();
-                ArrayList<Integer> numbers = new ArrayList<>();
-                messages.add(message);
-                numbers.add(number);
-                externalEvents.add(new ExternalEvent(numbers, messages, ExternalEvent.EventType.NEW_CLIENT, time));
-            } catch (ArrayIndexOutOfBounds ignored) {
-
-            }
-        }
+////        TODO add more interactions then do proper log builder
+//        StringBuilder builder = new StringBuilder("Interaction Received:");
+//        log(builder.toString());
+//
+//        if (interactionClass == newClientHandle) {
+//            try {
+//                log(String.valueOf(theInteraction.size()));
+//                Integer number = EncodingHelpers.decodeInt(theInteraction.getValue(0));
+//                String message = EncodingHelpers.decodeString(theInteraction.getValue(1));
+//                double time = convertTime(theTime);
+//                ArrayList<String> messages = new ArrayList<>();
+//                ArrayList<Integer> numbers = new ArrayList<>();
+//                messages.add(message);
+//                numbers.add(number);
+//                externalEvents.add(new ExternalEvent(numbers, messages, ExternalEvent.EventType.NEW_CLIENT, time));
+//            } catch (ArrayIndexOutOfBounds ignored) {
+//
+//            }
+//        }
     }
 
 }
