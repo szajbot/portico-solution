@@ -16,21 +16,25 @@ import java.util.Random;
 
 public class KlienciFederate {
 
+    private static final String FEDERATION_NAME = "GasStationSimulateFederation";
+    private static final String FEDERATE_NAME = "ClientsFederate";
+    public static final int ITERATIONS = 20;
     public static final String READY_TO_RUN = "ReadyToRun";
     private RTIambassador rtiamb;
     private KlienciAmbassador fedamb;
     private final double timeStep           = 10.0;
 
-    private ArrayList<Klient> klienci = new ArrayList<>();
-    private int clientNumber = 0;
+    private ArrayList<Klient> clients = new ArrayList<>();
+    private int clientId = 0;
 
     public void runFederate() throws RTIexception{
+
         rtiamb = RtiFactoryFactory.getRtiFactory().createRtiAmbassador();
 
         try
         {
             File fom = new File("solution.fed");
-            rtiamb.createFederationExecution( "ExampleFederation",
+            rtiamb.createFederationExecution( FEDERATION_NAME,
                     fom.toURI().toURL() );
             log( "Created Federation" );
         }
@@ -46,8 +50,8 @@ public class KlienciFederate {
         }
 
         fedamb = new KlienciAmbassador();
-        rtiamb.joinFederationExecution( "KlienciFederate", "ExampleFederation", fedamb );
-        log( "Joined Federation as KlienciFederate");
+        rtiamb.joinFederationExecution( FEDERATE_NAME, FEDERATION_NAME, fedamb );
+        log( "Joined Federation as ClientsFederate");
 
         rtiamb.registerFederationSynchronizationPoint( READY_TO_RUN, null );
 
@@ -66,13 +70,51 @@ public class KlienciFederate {
         }
 
         enableTimePolicy();
+        log( "Time Policy Enabled" );
 
-        publishAndSubscribe();
+        publishClient();
+        log( "Published and Subscribed" );
 
-        while (fedamb.running) {
-            advanceTime(randomTime());
-            sendInteraction(fedamb.federateTime + fedamb.federateLookahead);
-            rtiamb.tick();
+
+//        while (fedamb.running) {
+//            advanceTime(randomTime());
+//            sendInteraction(fedamb.federateTime + fedamb.federateLookahead);
+//            rtiamb.tick();
+//        }
+        for( int i = 0; i < ITERATIONS; i++ )
+        {
+            // register new clients
+            int clentHandle = registerClient();
+            clients.add(createClient(clentHandle));
+
+
+            // 9.3 request a time advance and wait until we get it
+            advanceTime( 1.0 );
+            log( "Time Advanced to " + fedamb.federateTime );
+        }
+
+        for (Klient client: clients){
+            deleteObject( client.id );
+            log( "Deleted Object, handle=" + client.id );
+        }
+
+
+
+        rtiamb.resignFederationExecution( ResignAction.NO_ACTION );
+        log( "Resigned from Federation" );
+
+        try
+        {
+            rtiamb.destroyFederationExecution( "ExampleFederation" );
+            log( "Destroyed Federation" );
+        }
+        catch( FederationExecutionDoesNotExist dne )
+        {
+            log( "No need to destroy federation, it doesn't exist" );
+        }
+        catch( FederatesCurrentlyJoined fcj )
+        {
+            log( "Didn't destroy federation, federates still joined" );
         }
 
     }
@@ -112,6 +154,66 @@ public class KlienciFederate {
         }
     }
 
+    private int registerClient() throws RTIexception{
+
+        int clientHandle = rtiamb.getObjectClassHandle("ObjectRoot.Client");
+        return rtiamb.registerObjectInstance(clientHandle);
+    }
+
+    private Klient createClient(int clientHandle){
+
+        Random rd = new Random();
+        Klient.PetrolType[] values = Klient.PetrolType.values();
+        Klient.PetrolType petrolType = values[rd.nextInt(2)];
+        float fuelQuantity = rd.nextFloat()+ rd.nextInt(95)+5;
+        boolean washOption = rd.nextBoolean();
+
+        try{
+            Klient client = new Klient(clientId,petrolType,fuelQuantity, washOption);
+            clientId++;
+
+            SuppliedAttributes attributes =
+                    RtiFactoryFactory.getRtiFactory().createSuppliedAttributes();
+
+            byte[] id = EncodingHelpers.encodeString( "clientId:" + clientHandle );
+            byte[] fuel = EncodingHelpers.encodeString( "petrolType:" + petrolType );
+            byte[] quantity = EncodingHelpers.encodeString( "fuelQuantity:" + fuelQuantity);
+            byte[] wash = EncodingHelpers.encodeString("washOption:"+ washOption);
+
+            int idHandle = rtiamb.getAttributeHandle( "clientId", clientHandle );
+            int fuelHandle = rtiamb.getAttributeHandle( "petrolType", clientHandle );
+            int quantityHandle = rtiamb.getAttributeHandle( "fuelQuantity", clientHandle );
+            int washHandle = rtiamb.getAttributeHandle( "washOption", clientHandle );
+
+            // put the values into the collection
+            attributes.add( idHandle, id );
+            attributes.add( fuelHandle, fuel );
+            attributes.add( quantityHandle, quantity );
+            attributes.add( washHandle, wash );
+
+            //////////////////////////
+            // do the actual update //
+            //////////////////////////
+            rtiamb.updateAttributeValues( clientHandle,attributes, generateTag() );
+            log( "Registered Client, handle=" + clientHandle );
+            return client;
+        }
+        catch (Exception e){
+            log("Client not created!");
+            return null;
+        }
+    }
+
+    private byte[] generateTag()
+    {
+        return (""+System.currentTimeMillis()).getBytes();
+    }
+
+    private void deleteObject( int handle ) throws RTIexception
+    {
+        rtiamb.deleteObjectInstance( handle, generateTag() );
+    }
+
     private void sendInteraction(double timeStep) throws RTIexception {
         SuppliedParameters parameters =
                 RtiFactoryFactory.getRtiFactory().createSuppliedParameters();
@@ -125,7 +227,7 @@ public class KlienciFederate {
         }
 
         byte[] petrolTypeByte = EncodingHelpers.encodeString(petrolType.name());
-        byte[] clientIdByte = EncodingHelpers.encodeInt(++clientNumber);
+        byte[] clientIdByte = EncodingHelpers.encodeInt(++clientId);
 
         int interactionHandle = rtiamb.getInteractionClassHandle("InteractionRoot.NewClient");
         int clientIdHandle = rtiamb.getParameterHandle( "clientId", interactionHandle);
@@ -134,15 +236,30 @@ public class KlienciFederate {
         parameters.add(clientIdHandle, clientIdByte);
         parameters.add(petrolTypeHandle, petrolTypeByte);
 
-        klienci.add(new Klient(petrolType, clientNumber));
+//        klienci.add(new Klient(petrolType, clientNumber));
 
         LogicalTime time = convertTime( timeStep );
         rtiamb.sendInteraction( interactionHandle, parameters, "tag".getBytes(), time );
     }
 
-    private void publishAndSubscribe() throws RTIexception {
-        int newClientHandle = rtiamb.getInteractionClassHandle("InteractionRoot.NewClient");
-        rtiamb.publishInteractionClass(newClientHandle);
+    private void publishClient() throws RTIexception {
+
+        int clientHandle = rtiamb.getObjectClassHandle("ObjectRoot.Client");
+        int idHandle = rtiamb.getAttributeHandle( "clientId", clientHandle );
+        int fuelHandle = rtiamb.getAttributeHandle( "petrolType", clientHandle );
+        int quantityHandle = rtiamb.getAttributeHandle( "fuelQuantity", clientHandle );
+        int washHandle = rtiamb.getAttributeHandle( "washOption", clientHandle );
+
+        // package the information into a handle set
+        AttributeHandleSet attributes =
+                RtiFactoryFactory.getRtiFactory().createAttributeHandleSet();
+        attributes.add( idHandle );
+        attributes.add( fuelHandle );
+        attributes.add( quantityHandle );
+        attributes.add( washHandle );
+
+        // do the actual publication
+        rtiamb.publishObjectClass( clientHandle, attributes );
     }
 
     private void advanceTime( double timestep ) throws RTIexception
@@ -180,7 +297,7 @@ public class KlienciFederate {
 
     private void log( String message )
     {
-        System.out.println( "StorageFederate   : " + message );
+        System.out.println( "StorageClientsFederate   : " + message );
     }
 
     public static void main(String[] args) {

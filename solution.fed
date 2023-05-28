@@ -14,19 +14,13 @@
     (class ObjectRoot
       (attribute privilegeToDelete reliable timestamp)
       (class RTIprivate)
-      (class Storage
-        (attribute stock reliable timestamp TestSpace)
+      (class Client
+        (attribute clientId reliable timestamp TestSpace)
+        (attribute petrolType reliable timestamp TestSpace)
+        (attribute fuelQuantity reliable timestamp TestSpace)
+        (attribute washOption reliable timestamp TestSpace)
       )
     )
   )
-  (interactions
-    (class InteractionRoot reliable timestamp
-      (class RTIprivate reliable timestamp)
-      (class Finish reliable timestamp)
-      (class NewClient reliable timestamp TestSpace
-         (parameter clientId)
-         (parameter petrolType)
-      )
-    )
-  )
+
 )

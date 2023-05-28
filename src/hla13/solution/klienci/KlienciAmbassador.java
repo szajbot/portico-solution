@@ -21,6 +21,10 @@ public class KlienciAmbassador extends NullFederateAmbassador {
     protected boolean running 			 = true;
 
 
+    public KlienciAmbassador(){
+
+    }
+
     private double convertTime( LogicalTime logicalTime )
     {
         // PORTICO SPECIFIC!!
