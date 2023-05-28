@@ -92,7 +92,7 @@ public class GasStationAmbassador extends NullFederateAmbassador {
                                        String objectName) {
 
         if (theObjectClass == newClientHandle) {
-            log("Received new object client");
+//            log("Received new object client");
             newClientInstances.add(theObject);
         } else {
             log("Sth strange happen");
@@ -118,7 +118,7 @@ public class GasStationAmbassador extends NullFederateAmbassador {
 
         if (newClientInstances.contains(theObject)) {
             try {
-                log("ReceivedClient");
+//                log("ReceivedClient");
                 ArrayList<Pair<Integer, byte[]>> listOfPairs = new ArrayList<>();
                 for (int i = 0; i < theAttributes.size(); i++) {
                     listOfPairs.add(new Pair<>(
