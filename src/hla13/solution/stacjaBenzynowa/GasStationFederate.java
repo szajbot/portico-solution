@@ -153,7 +153,7 @@ public class GasStationFederate {
     }
 
     private void log(String message) {
-        System.out.println("StorageFederate   : " + message);
+        System.out.println(FEDERATE_NAME +": "+ message);
     }
 
     public static void main(String[] args) {
