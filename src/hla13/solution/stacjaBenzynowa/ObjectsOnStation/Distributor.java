@@ -21,6 +21,6 @@ public class Distributor extends ObjectOnStation {
 
     public Double serviceTime(Float quantity) {
 //        random double from 1 to 10 + quantity
-        return 50 + (10 - 1) * random.nextDouble() + quantity;
+        return 1 + (10 - 1) * random.nextDouble() + quantity;
     }
 }

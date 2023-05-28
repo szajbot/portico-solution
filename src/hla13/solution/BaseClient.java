@@ -5,8 +5,17 @@ public class BaseClient {
     PetrolType petrolType;
     float fuelQuantity;
     boolean washOption;
-
     double time;
+
+    public double getLastServiceEndTime() {
+        return lastServiceEndTime;
+    }
+
+    public void setLastServiceEndTime(double lastServiceEndTime) {
+        this.lastServiceEndTime = lastServiceEndTime;
+    }
+
+    double lastServiceEndTime;
 
     public BaseClient(int clientNumber, PetrolType petrolType, float fuelQuantity, boolean washOption, double time) {
         this.id = clientNumber;

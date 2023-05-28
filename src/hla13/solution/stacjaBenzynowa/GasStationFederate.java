@@ -7,6 +7,7 @@ import hla13.solution.BaseClient;
 import hla13.solution.PetrolType;
 import hla13.solution.stacjaBenzynowa.ObjectsOnStation.Distributor;
 import hla13.solution.stacjaBenzynowa.ObjectsOnStation.Wash;
+import javafx.util.Pair;
 import org.portico.impl.hla13.types.DoubleTime;
 import org.portico.impl.hla13.types.DoubleTimeInterval;
 
@@ -15,6 +16,7 @@ import java.io.File;
 import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.LinkedList;
 
 public class GasStationFederate {
@@ -30,6 +32,9 @@ public class GasStationFederate {
     private ArrayList<Distributor> onDistributors = new ArrayList<>();
     private ArrayList<Distributor> benzineDistributors = new ArrayList<>();
     private ArrayList<Wash> washes = new ArrayList<>();
+    private ArrayList<BaseClient> tempForWashQueue = new ArrayList<>();
+
+
 
     public void runFederate() throws Exception {
 
@@ -78,12 +83,9 @@ public class GasStationFederate {
             if (fedamb.receivedClients.size() > 0) {
                 for (BaseClient receivedClient : fedamb.receivedClients) {
 
-//                  logic add new clients then check for ended service time and move clients in queue
-                    log(String.valueOf(timeToAdvance));
                     log(receivedClient.explainYourself());
                     addClientToStation(receivedClient);
                     checkForEndedServiceTime(timeToAdvance);
-                    log("ENDED ADVANCING");
 
                 }
                 fedamb.receivedClients.clear();
@@ -102,18 +104,35 @@ public class GasStationFederate {
 //        loop for objects at station to check ended service on object
         checkEndedServiceForDistributor(onDistributors, timeToAdvance);
         checkEndedServiceForDistributor(benzineDistributors, timeToAdvance);
+
+//        some clients can in one advance end distributor service and start wash service
+        updateQueueForWash(washes);
+
         checkEndedServiceForWash(washes, timeToAdvance);
+    }
+
+    private void updateQueueForWash(ArrayList<Wash> washes) {
+        sortTempForWashQueue();
+        for (BaseClient client: tempForWashQueue) {
+            washes.get(0).getQueue().add(client);
         }
+        tempForWashQueue.clear();
+    }
+
+    private void sortTempForWashQueue() {
+        Comparator<BaseClient> comparator = Comparator.comparing(BaseClient::getLastServiceEndTime);
+        tempForWashQueue.sort(comparator);
+    }
 
     private void checkEndedServiceForWash(ArrayList<Wash> washes, double timeToAdvance) {
         for (Wash wash : washes) {
             if (!wash.getInUse() && !wash.getQueue().isEmpty()) {
-                wash.setNextServiceTime(wash.serviceTime() + wash.getQueue().get(0).getTime());
+                wash.setNextServiceTime(wash.serviceTime() + wash.getQueue().get(0).getLastServiceEndTime());
                 serviceClientsSendInteractionsAndUpdateQueueInWash(wash, timeToAdvance);
             } else if (wash.getInUse() && !wash.getQueue().isEmpty()) {
                 serviceClientsSendInteractionsAndUpdateQueueInWash(wash, timeToAdvance);
             } else {
-                log("no queue in: " + wash.getName());
+//                log("no queue in: " + wash.getName());
             }
         }
     }
@@ -127,7 +146,7 @@ public class GasStationFederate {
             } else if (distributor.getInUse() && !distributor.getQueue().isEmpty()) {
                 serviceClientsSendInteractionsAndUpdateQueueInDistributor(distributor, timeToAdvance);
             } else {
-                log("no queue in: " + distributor.getName());
+//                log("no queue in: " + distributor.getName());
             }
         }
     }
@@ -135,11 +154,11 @@ public class GasStationFederate {
     private void serviceClientsSendInteractionsAndUpdateQueueInWash(Wash wash, double timeToAdvance) {
         while (wash.getNextServiceTime() < timeToAdvance && !wash.getQueue().isEmpty()) {
             BaseClient endedServiceClient = wash.getQueue().pop();
-            log("Distributor service ended in client nr: : " + endedServiceClient.getId() + ", at time: " + wash.getNextServiceTime());
+            log(wash.getName() + " service ended in client nr: : " + endedServiceClient.getId() + ", at time: " + wash.getNextServiceTime());
 //                  TODO send intercations for statistic
 //                  TODO send to wash or cash
             if (!wash.getQueue().isEmpty()) {
-                wash.setNextServiceTime(wash.serviceTime() + endedServiceClient.getTime());
+                wash.setNextServiceTime(wash.serviceTime() + wash.getNextServiceTime());
             }
         }
         if (!wash.getQueue().isEmpty()) {
@@ -149,15 +168,23 @@ public class GasStationFederate {
         }
     }
 
+    private void sendClientToWashQueue(BaseClient endedServiceClient) {
+        tempForWashQueue.add(endedServiceClient);
+    }
+
     private void serviceClientsSendInteractionsAndUpdateQueueInDistributor(Distributor distributor, double timeToAdvance) {
         while (distributor.getNextServiceTime() < timeToAdvance && !distributor.getQueue().isEmpty()) {
             BaseClient endedServiceClient = distributor.getQueue().pop();
-            log("Distributor service ended in client nr: : " + endedServiceClient.getId() + ", at time: " + distributor.getNextServiceTime());
+            log(distributor.getName() + " service ended in client nr: : " + endedServiceClient.getId() + ", at time: " + distributor.getNextServiceTime());
+            endedServiceClient.setLastServiceEndTime(distributor.getNextServiceTime());
+            if (endedServiceClient.isWashOption()) {
+                sendClientToWashQueue(endedServiceClient);
+            }
 //                  TODO send intercations for statistic
 //                  TODO send to wash or cash
             if (!distributor.getQueue().isEmpty()) {
                 Float quantity = distributor.getQueue().get(0).getFuelQuantity();
-                distributor.setNextServiceTime(distributor.serviceTime(quantity) + endedServiceClient.getTime());
+                distributor.setNextServiceTime(distributor.serviceTime(quantity) + distributor.getNextServiceTime());
             }
         }
         if (!distributor.getQueue().isEmpty()) {
