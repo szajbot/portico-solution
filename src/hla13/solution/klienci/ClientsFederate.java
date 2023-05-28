@@ -150,8 +150,7 @@ public class ClientsFederate {
         boolean washOption = rd.nextBoolean();
 
         try {
-            Client client = new Client(clientId, petrolType, fuelQuantity, washOption);
-            clientId++;
+            Client client = new Client(clientHandle, petrolType, fuelQuantity, washOption);
 
             SuppliedAttributes attributes =
                     RtiFactoryFactory.getRtiFactory().createSuppliedAttributes();
@@ -161,10 +160,11 @@ public class ClientsFederate {
             byte[] quantity = EncodingHelpers.encodeString("fuelQuantity:" + fuelQuantity);
             byte[] wash = EncodingHelpers.encodeString("washOption:" + washOption);
 
-            int idHandle = rtiamb.getAttributeHandle("clientId", clientHandle);
-            int fuelHandle = rtiamb.getAttributeHandle("petrolType", clientHandle);
-            int quantityHandle = rtiamb.getAttributeHandle("fuelQuantity", clientHandle);
-            int washHandle = rtiamb.getAttributeHandle("washOption", clientHandle);
+            int classClient = rtiamb.getObjectClass(clientHandle);
+            int idHandle = rtiamb.getAttributeHandle("clientId", classClient);
+            int fuelHandle = rtiamb.getAttributeHandle("petrolType", classClient);
+            int quantityHandle = rtiamb.getAttributeHandle("fuelQuantity", classClient);
+            int washHandle = rtiamb.getAttributeHandle("washOption", classClient);
 
             // put the values into the collection
             attributes.add(idHandle, id);
