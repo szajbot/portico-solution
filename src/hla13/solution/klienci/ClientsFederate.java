@@ -155,10 +155,10 @@ public class ClientsFederate {
             SuppliedAttributes attributes =
                     RtiFactoryFactory.getRtiFactory().createSuppliedAttributes();
 
-            byte[] id = EncodingHelpers.encodeString("clientId:" + clientHandle);
-            byte[] fuel = EncodingHelpers.encodeString("petrolType:" + petrolType);
-            byte[] quantity = EncodingHelpers.encodeString("fuelQuantity:" + fuelQuantity);
-            byte[] wash = EncodingHelpers.encodeString("washOption:" + washOption);
+            byte[] id = EncodingHelpers.encodeInt(clientHandle);
+            byte[] fuel = EncodingHelpers.encodeString(String.valueOf(petrolType));
+            byte[] quantity = EncodingHelpers.encodeFloat(fuelQuantity);
+            byte[] wash = EncodingHelpers.encodeBoolean(washOption);
 
             int classClient = rtiamb.getObjectClass(clientHandle);
             int idHandle = rtiamb.getAttributeHandle("clientId", classClient);
@@ -214,8 +214,6 @@ public class ClientsFederate {
         parameters.add(clientIdHandle, clientIdByte);
         parameters.add(petrolTypeHandle, petrolTypeByte);
 
-//        klienci.add(new Klient(petrolType, clientNumber));
-
         LogicalTime time = convertTime(timeStep);
         rtiamb.sendInteraction(interactionHandle, parameters, "tag".getBytes(), time);
     }
@@ -223,7 +221,6 @@ public class ClientsFederate {
     private void publishClient() throws RTIexception {
 
         int clientHandle = rtiamb.getObjectClassHandle("ObjectRoot.Client");
-//        this.clientHlaHandle = rtiamb.registerObjectInstance(clientHandle);
 
         int idHandle = rtiamb.getAttributeHandle("clientId", clientHandle);
         int fuelHandle = rtiamb.getAttributeHandle("petrolType", clientHandle);

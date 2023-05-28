@@ -2,6 +2,7 @@ package hla13.solution.stacjaBenzynowa;
 
 
 import hla.rti.*;
+import hla.rti.jlc.EncodingHelpers;
 import hla.rti.jlc.RtiFactoryFactory;
 import org.portico.impl.hla13.types.DoubleTime;
 import org.portico.impl.hla13.types.DoubleTimeInterval;
@@ -59,27 +60,16 @@ public class GasStationFederate {
 
         publishAndSubscribe();
 
-        registerStorageObject();
-
         while (fedamb.running) {
             double timeToAdvance = fedamb.federateTime + timeStep;
             advanceTime(timeToAdvance);
 
-            if (fedamb.externalEvents.size() > 0) {
-                fedamb.externalEvents.sort(new ExternalEvent.ExternalEventComparator());
-                for (ExternalEvent externalEvent : fedamb.externalEvents) {
-                    fedamb.federateTime = externalEvent.getTime();
-                    switch (externalEvent.getEventType()) {
-                        case NEW_CLIENT:
-                            log("New client arrived " +
-                                    "clientId: " + externalEvent.getNumbers().toString() +
-                                    "petrolType: " + externalEvent.getMessages().get(0));
-                            break;
-                    }
+            if (fedamb.receivedClients.size() > 0) {
+                for (ReceivedClient receivedClient : fedamb.receivedClients) {
+                    log(receivedClient.explainYourself());
                 }
-                fedamb.externalEvents.clear();
+                fedamb.receivedClients.clear();
             }
-
             if (fedamb.grantedTime == timeToAdvance) {
                 timeToAdvance += fedamb.federateLookahead;
                 fedamb.federateTime = timeToAdvance;
@@ -101,10 +91,6 @@ public class GasStationFederate {
         }
     }
 
-    private void registerStorageObject() throws RTIexception {
-        // TODO helpful in future
-    }
-
     private void advanceTime(double timeToAdvance) throws RTIexception {
         fedamb.isAdvancing = true;
         LogicalTime newTime = convertTime(timeToAdvance);
@@ -117,17 +103,23 @@ public class GasStationFederate {
 
     private void publishAndSubscribe() throws RTIexception {
 
-//        TODO EXAMPLE USAGE OF OBJECT INSTED OF INTERACTION
-//        int classHandle = rtiamb.getObjectClassHandle("ObjectRoot.Storage");
-//        int stockHandle    = rtiamb.getAttributeHandle( "stock", classHandle );
+        int classHandle = rtiamb.getObjectClassHandle("ObjectRoot.Client");
 
-//        AttributeHandleSet attributes =
-//                RtiFactoryFactory.getRtiFactory().createAttributeHandleSet();
-//        attributes.add( stockHandle );
+        int clientIdHandle = rtiamb.getAttributeHandle("clientId", classHandle);
+        int petrolTypeHandle = rtiamb.getAttributeHandle("petrolType", classHandle);
+        int fuelQuantityHandle = rtiamb.getAttributeHandle("fuelQuantity", classHandle);
+        int washOptionHandle = rtiamb.getAttributeHandle("washOption", classHandle);
 
-//        int newClientHandle = rtiamb.getInteractionClassHandle("InteractionRoot.NewClient");
-//        fedamb.newClientHandle = newClientHandle;
-//        rtiamb.subscribeInteractionClass(newClientHandle);
+        AttributeHandleSet attributes = RtiFactoryFactory.getRtiFactory().createAttributeHandleSet();
+
+        attributes.add(clientIdHandle);
+        attributes.add(petrolTypeHandle);
+        attributes.add(fuelQuantityHandle);
+        attributes.add(washOptionHandle);
+
+        fedamb.newClientHandle = classHandle;
+
+        rtiamb.subscribeObjectClassAttributes(classHandle, attributes);
     }
 
     private void enableTimePolicy() throws RTIexception {
