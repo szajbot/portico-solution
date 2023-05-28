@@ -1,13 +1,13 @@
 package hla13.solution.klienci;
 
-public class Klient {
+public class Client {
 
     int id;
     PetrolType petrolType;
     float fuelQuantity;
     boolean washOption;
 
-    public Klient(int clientNumber, PetrolType petrolType, float fuelQuantity, boolean washOption) {
+    public Client(int clientNumber, PetrolType petrolType, float fuelQuantity, boolean washOption) {
         this.id = clientNumber;
         this.petrolType = petrolType;
         this.fuelQuantity = fuelQuantity;

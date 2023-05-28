@@ -1,5 +1,5 @@
 (FED
-  (Federation solution)
+  (Federation GasStationSimulateFederation)
   (FEDversion v1.3)
   (spaces
     (space TestSpace
