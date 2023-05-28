@@ -25,7 +25,7 @@ public class ClientsFederate {
     private ClientsAmbassador fedamb;
     private final double timeStep = 10.0;
 
-    private ArrayList<Client> clients = new ArrayList<>();
+    public static final ArrayList<Client> clients = new ArrayList<>();
 
     public void runFederate() throws RTIexception, InterruptedException {
 
