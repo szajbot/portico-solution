@@ -6,7 +6,8 @@ import hla.rti.jlc.NullFederateAmbassador;
 import hla.rti.EventRetractionHandle;
 import hla.rti.LogicalTime;
 import hla.rti.ReceivedInteraction;
-import hla13.solution.klienci.Client;
+import hla13.solution.PetrolType;
+import hla13.solution.BaseClient;
 import javafx.util.Pair;
 import org.portico.impl.hla13.types.DoubleTime;
 
@@ -46,7 +47,7 @@ public class GasStationAmbassador extends NullFederateAmbassador {
 //    protected int test3Handle = 0;
 
 //    protected ArrayList<ExternalEvent> externalEvents = new ArrayList<>();
-    protected ArrayList<ReceivedClient> receivedClients = new ArrayList<>();
+    protected ArrayList<BaseClient> receivedClients = new ArrayList<>();
 
     class PairComparator implements Comparator<Pair<Integer, byte[]>> {
         @Override
@@ -127,14 +128,18 @@ public class GasStationAmbassador extends NullFederateAmbassador {
                     );
                 }
 
+                double time =  convertTime(theTime);
+
                 PairComparator pairComparator = new PairComparator();
                 Collections.sort(listOfPairs, pairComparator);
 
-                receivedClients.add(new ReceivedClient(
+                receivedClients.add(new BaseClient(
                         EncodingHelpers.decodeInt(listOfPairs.get(0).getValue()),
-                        Client.PetrolType.valueOf(EncodingHelpers.decodeString(listOfPairs.get(1).getValue())),
+                        PetrolType.valueOf(EncodingHelpers.decodeString(listOfPairs.get(1).getValue())),
                         EncodingHelpers.decodeFloat(listOfPairs.get(2).getValue()),
-                        EncodingHelpers.decodeBoolean(listOfPairs.get(3).getValue())));
+                        EncodingHelpers.decodeBoolean(listOfPairs.get(3).getValue()),
+                        time
+                        ));
 
 //                TODO if u wna to see what inside
 //                for (Pair<Integer, byte[]> pair : listOfPairs) {

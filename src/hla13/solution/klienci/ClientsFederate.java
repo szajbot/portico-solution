@@ -4,6 +4,7 @@ package hla13.solution.klienci;
 import hla.rti.*;
 import hla.rti.jlc.EncodingHelpers;
 import hla.rti.jlc.RtiFactoryFactory;
+import hla13.solution.PetrolType;
 import org.portico.impl.hla13.types.DoubleTime;
 import org.portico.impl.hla13.types.DoubleTimeInterval;
 
@@ -89,8 +90,8 @@ public class ClientsFederate {
 //        }
 
         for (Client client : clients) {
-            deleteObject(client.id);
-            log("Deleted Object, handle=" + client.id);
+            deleteObject(client.getId());
+            log("Deleted Object, handle=" + client.getId());
         }
 
 
@@ -137,7 +138,6 @@ public class ClientsFederate {
     }
 
     private int registerClient() throws RTIexception {
-
         int clientHandle = rtiamb.getObjectClassHandle("ObjectRoot.Client");
         return rtiamb.registerObjectInstance(clientHandle);
     }
@@ -145,8 +145,8 @@ public class ClientsFederate {
     private Client createClient(int clientHandle, double timeStep) {
 
         Random rd = new Random();
-        Client.PetrolType[] values = Client.PetrolType.values();
-        Client.PetrolType petrolType = values[rd.nextInt(2)];
+        PetrolType[] values = PetrolType.values();
+        PetrolType petrolType = values[rd.nextInt(2)];
         float fuelQuantity = rd.nextFloat() + rd.nextInt(95) + 5;
         boolean washOption = rd.nextBoolean();
 

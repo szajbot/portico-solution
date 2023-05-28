@@ -2,8 +2,8 @@ package hla13.solution.stacjaBenzynowa;
 
 
 import hla.rti.*;
-import hla.rti.jlc.EncodingHelpers;
 import hla.rti.jlc.RtiFactoryFactory;
+import hla13.solution.BaseClient;
 import org.portico.impl.hla13.types.DoubleTime;
 import org.portico.impl.hla13.types.DoubleTimeInterval;
 
@@ -65,7 +65,7 @@ public class GasStationFederate {
             advanceTime(timeToAdvance);
 
             if (fedamb.receivedClients.size() > 0) {
-                for (ReceivedClient receivedClient : fedamb.receivedClients) {
+                for (BaseClient receivedClient : fedamb.receivedClients) {
                     log(receivedClient.explainYourself());
                 }
                 fedamb.receivedClients.clear();

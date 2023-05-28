@@ -1,24 +1,16 @@
 package hla13.solution.klienci;
 
-public class Client {
+import hla13.solution.BaseClient;
+import hla13.solution.PetrolType;
 
-    int id;
-    PetrolType petrolType;
-    float fuelQuantity;
-    boolean washOption;
-
-    public Client(int clientNumber, PetrolType petrolType, float fuelQuantity, boolean washOption) {
-        this.id = clientNumber;
-        this.petrolType = petrolType;
-        this.fuelQuantity = fuelQuantity;
-        this.washOption = washOption;
-    }
-
-    public enum PetrolType {ON, BENZYNA}
+public class Client extends BaseClient {
 
     int numberInQueue;
     int objectNumber;
     int arriveTime;
     int exitTime;
 
+    public Client(int clientNumber, PetrolType petrolType, float fuelQuantity, boolean washOption) {
+        super(clientNumber, petrolType, fuelQuantity, washOption);
+    }
 }
