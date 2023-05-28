@@ -7,16 +7,13 @@ public class Client extends BaseClient {
 
     int numberInPetrolQueue;
     int numberInWashingQueue;
-    int numberInPaymentsQueue;
-    int objectNumber;
-    double arriveTime;
-    double exitTime;
-    double startPetrolService;
+    int numberInPaymentQueue;
+    double startPetrolService; //arrive
     double endPetrolService;
-    double startWashing;
-    double endWashing;
-    double startPayments;
-    double endPayments;
+    double startWashing = 0;
+    double endWashing = 0;
+    double startPayment;
+    double endPayment; //exit
 
 
     public Client(int clientNumber, PetrolType petrolType, float fuelQuantity, boolean washOption) {

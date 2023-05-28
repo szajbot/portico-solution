@@ -221,18 +221,26 @@ public class ClientsFederate {
 
     private void subscribeInteractions() throws RTIexception {
 
-        int startPetrolService = rtiamb.getInteractionClassHandle("InteractionRoot.StartPetrolService");
-        fedamb.startPetrolService = startPetrolService;
-        rtiamb.subscribeInteractionClass(startPetrolService);
+        int petrolService = rtiamb.getInteractionClassHandle("InteractionRoot.PetrolService");
+        fedamb.petrolService = petrolService;
+        rtiamb.subscribeInteractionClass(petrolService);
 
-        int stopPetrolService = rtiamb.getInteractionClassHandle("InteractionRoot.StopPetrolService");
-        fedamb.startPetrolService = stopPetrolService;
-        rtiamb.subscribeInteractionClass(stopPetrolService);
+        int washService = rtiamb.getInteractionClassHandle("InteractionRoot.WashService");
+        fedamb.washService = washService;
+        rtiamb.subscribeInteractionClass(washService);
+
+        int startPayment = rtiamb.getInteractionClassHandle("InteractionRoot.StartPayment");
+        fedamb.startPayment = startPayment;
+        rtiamb.subscribeInteractionClass(startPayment);
+
+        int endPayment = rtiamb.getInteractionClassHandle("InteractionRoot.EndPayment");
+        fedamb.endPayment = endPayment;
+        rtiamb.subscribeInteractionClass(endPayment);
 
     }
 
     private void advanceTime(double timestep) throws RTIexception {
-        log("requesting time advance for: " + timestep);
+        log("Federate time: " + fedamb.federateTime);
         // request the advance
         fedamb.isAdvancing = true;
         LogicalTime newTime = convertTime(fedamb.federateTime + timestep);

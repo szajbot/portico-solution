@@ -2,12 +2,12 @@ package hla13.solution.stacjaBenzynowa;
 
 
 import hla.rti.*;
+import hla.rti.jlc.EncodingHelpers;
 import hla.rti.jlc.RtiFactoryFactory;
 import hla13.solution.BaseClient;
 import hla13.solution.PetrolType;
 import hla13.solution.stacjaBenzynowa.ObjectsOnStation.Distributor;
 import hla13.solution.stacjaBenzynowa.ObjectsOnStation.Wash;
-import javafx.util.Pair;
 import org.portico.impl.hla13.types.DoubleTime;
 import org.portico.impl.hla13.types.DoubleTimeInterval;
 
@@ -29,11 +29,10 @@ public class GasStationFederate {
     private GasStationAmbassador fedamb;
     private final double timeStep = 10.0;
 
-    private ArrayList<Distributor> onDistributors = new ArrayList<>();
-    private ArrayList<Distributor> benzineDistributors = new ArrayList<>();
-    private ArrayList<Wash> washes = new ArrayList<>();
-    private ArrayList<BaseClient> tempForWashQueue = new ArrayList<>();
-
+    private final ArrayList<Distributor> onDistributors = new ArrayList<>();
+    private final ArrayList<Distributor> benzineDistributors = new ArrayList<>();
+    private final ArrayList<Wash> washes = new ArrayList<>();
+    private final ArrayList<BaseClient> tempForWashQueue = new ArrayList<>();
 
 
     public void runFederate() throws Exception {
@@ -58,7 +57,7 @@ public class GasStationFederate {
 
         rtiamb.registerFederationSynchronizationPoint(READY_TO_RUN, null);
 
-        while (fedamb.isAnnounced == false) {
+        while (!fedamb.isAnnounced) {
             rtiamb.tick();
         }
 
@@ -66,14 +65,14 @@ public class GasStationFederate {
 
         rtiamb.synchronizationPointAchieved(READY_TO_RUN);
         log("Achieved sync point: " + READY_TO_RUN + ", waiting for federation...");
-        while (fedamb.isReadyToRun == false) {
+        while (!fedamb.isReadyToRun) {
             rtiamb.tick();
         }
 
         enableTimePolicy();
 
         publishAndSubscribe();
-        
+
         createStationObjects();
 
         while (fedamb.running) {
@@ -83,7 +82,7 @@ public class GasStationFederate {
             if (fedamb.receivedClients.size() > 0) {
                 for (BaseClient receivedClient : fedamb.receivedClients) {
 
-                    log(receivedClient.explainYourself());
+                    //log(receivedClient.explainYourself());
                     addClientToStation(receivedClient);
                     checkForEndedServiceTime(timeToAdvance);
 
@@ -113,7 +112,8 @@ public class GasStationFederate {
 
     private void updateQueueForWash(ArrayList<Wash> washes) {
         sortTempForWashQueue();
-        for (BaseClient client: tempForWashQueue) {
+        for (BaseClient client : tempForWashQueue) {
+            client.setNumberInQue(washes.get(0).getQueue().size()+1);
             washes.get(0).getQueue().add(client);
         }
         tempForWashQueue.clear();
@@ -141,7 +141,7 @@ public class GasStationFederate {
         for (Distributor distributor : genericDistributors) {
             if (!distributor.getInUse() && !distributor.getQueue().isEmpty()) {
                 Float quantity = distributor.getQueue().get(0).getFuelQuantity();
-                distributor.setNextServiceTime(distributor.serviceTime(quantity) + distributor.getQueue().get(0).getTime());
+                distributor.setNextServiceTime(distributor.serviceTime(quantity) + distributor.getQueue().get(0).getArriveTime());
                 serviceClientsSendInteractionsAndUpdateQueueInDistributor(distributor, timeToAdvance);
             } else if (distributor.getInUse() && !distributor.getQueue().isEmpty()) {
                 serviceClientsSendInteractionsAndUpdateQueueInDistributor(distributor, timeToAdvance);
@@ -154,9 +154,19 @@ public class GasStationFederate {
     private void serviceClientsSendInteractionsAndUpdateQueueInWash(Wash wash, double timeToAdvance) {
         while (wash.getNextServiceTime() < timeToAdvance && !wash.getQueue().isEmpty()) {
             BaseClient endedServiceClient = wash.getQueue().pop();
+            //start mycia
+            double startWashService = endedServiceClient.getLastServiceEndTime();
+            endedServiceClient.setLastServiceEndTime(wash.getNextServiceTime());
+            //koniec mycia
+            double endWashService = endedServiceClient.getLastServiceEndTime();
             log(wash.getName() + " service ended in client nr: : " + endedServiceClient.getId() + ", at time: " + wash.getNextServiceTime());
-//                  TODO send intercations for statistic
-//                  TODO send to wash or cash
+            //send intercations for statistic
+            try {
+                sendInteractionService("WashService",endedServiceClient.getId(), endedServiceClient.getNumberInQue(), startWashService, endWashService);
+                sendInteractionStartPayments(endedServiceClient.getId(),endWashService);
+            } catch (RTIexception e) {
+                throw new RuntimeException(e);
+            }
             if (!wash.getQueue().isEmpty()) {
                 wash.setNextServiceTime(wash.serviceTime() + wash.getNextServiceTime());
             }
@@ -175,13 +185,22 @@ public class GasStationFederate {
     private void serviceClientsSendInteractionsAndUpdateQueueInDistributor(Distributor distributor, double timeToAdvance) {
         while (distributor.getNextServiceTime() < timeToAdvance && !distributor.getQueue().isEmpty()) {
             BaseClient endedServiceClient = distributor.getQueue().pop();
+            double startPetrolService = endedServiceClient.getArriveTime();
             log(distributor.getName() + " service ended in client nr: : " + endedServiceClient.getId() + ", at time: " + distributor.getNextServiceTime());
             endedServiceClient.setLastServiceEndTime(distributor.getNextServiceTime());
+            double endPetrolService = endedServiceClient.getLastServiceEndTime();
             if (endedServiceClient.isWashOption()) {
                 sendClientToWashQueue(endedServiceClient);
             }
-//                  TODO send intercations for statistic
-//                  TODO send to wash or cash
+//                  TODO send to wash or cash !!!IMPORTANT SEND TO CASH
+            try {
+                sendInteractionService("PetrolService",endedServiceClient.getId(), endedServiceClient.getNumberInQue(), startPetrolService, endPetrolService);
+                if(!endedServiceClient.isWashOption()){
+                    sendInteractionStartPayments(endedServiceClient.getId(), endPetrolService);
+                }
+            } catch (RTIexception e) {
+                throw new RuntimeException(e);
+            }
             if (!distributor.getQueue().isEmpty()) {
                 Float quantity = distributor.getQueue().get(0).getFuelQuantity();
                 distributor.setNextServiceTime(distributor.serviceTime(quantity) + distributor.getNextServiceTime());
@@ -198,12 +217,16 @@ public class GasStationFederate {
         switch (receivedClient.getPetrolType()) {
             case ON:
                 onDistributors.get(0).getQueue().add(receivedClient);
+                receivedClient.setArriveTime(fedamb.federateTime);
+                receivedClient.setNumberInQue(onDistributors.get(0).getQueue().size());
                 break;
             case BENZYNA:
                 benzineDistributors.get(0).getQueue().add(receivedClient);
+                receivedClient.setArriveTime(fedamb.federateTime);
+                receivedClient.setNumberInQue(benzineDistributors.get(0).getQueue().size());
                 break;
-                default:
-                    log("Strange thing happen");
+            default:
+                log("Strange thing happen");
         }
     }
 
@@ -253,6 +276,16 @@ public class GasStationFederate {
         fedamb.newClientHandle = classHandle;
 
         rtiamb.subscribeObjectClassAttributes(classHandle, attributes);
+
+
+        int interactionPetrolService = rtiamb.getInteractionClassHandle("InteractionRoot.PetrolService");
+        rtiamb.publishInteractionClass(interactionPetrolService);
+
+        int interactionWashService = rtiamb.getInteractionClassHandle("InteractionRoot.WashService");
+        rtiamb.publishInteractionClass(interactionWashService);
+
+        int interactionStartPayment = rtiamb.getInteractionClassHandle("InteractionRoot.StartPayment");
+        rtiamb.publishInteractionClass(interactionStartPayment);
     }
 
     private void enableTimePolicy() throws RTIexception {
@@ -285,8 +318,54 @@ public class GasStationFederate {
         return new DoubleTimeInterval(time);
     }
 
+    private byte[] generateTag() {
+        return ("" + System.currentTimeMillis()).getBytes();
+    }
+
     private void log(String message) {
-        System.out.println(FEDERATE_NAME +": "+ message);
+        System.out.println(FEDERATE_NAME + ": " + message);
+    }
+
+    private void sendInteractionService(String name, int clientId, int que, double startTime, double endTime) throws RTIexception {
+        SuppliedParameters parameters =
+                RtiFactoryFactory.getRtiFactory().createSuppliedParameters();
+
+        byte[] id = EncodingHelpers.encodeInt(clientId);
+        byte[] startT = EncodingHelpers.encodeDouble(startTime);
+        byte[] endT = EncodingHelpers.encodeDouble(endTime);
+        byte[] queue = EncodingHelpers.encodeInt(que);
+
+        int classHandle = rtiamb.getInteractionClassHandle("InteractionRoot."+name);
+        int idHandle = rtiamb.getParameterHandle("clientId", classHandle);
+        int startHandle = rtiamb.getParameterHandle("startTime", classHandle);
+        int endHandle = rtiamb.getParameterHandle("endTime", classHandle);
+        int queHandle = rtiamb.getParameterHandle("numberInPetrolQueue", classHandle);
+
+
+        parameters.add(idHandle, id);
+        parameters.add(startHandle, startT);
+        parameters.add(endHandle, endT);
+        parameters.add(queHandle, queue);
+
+
+        rtiamb.sendInteraction(classHandle, parameters, generateTag());
+    }
+
+    private void sendInteractionStartPayments(int clientId, double startTime) throws RTIexception {
+        SuppliedParameters parameters =
+                RtiFactoryFactory.getRtiFactory().createSuppliedParameters();
+
+        byte[] id = EncodingHelpers.encodeInt(clientId);
+        byte[] startT = EncodingHelpers.encodeDouble(startTime);
+
+        int classHandle = rtiamb.getInteractionClassHandle("InteractionRoot.StartPayment");
+        int idHandle = rtiamb.getParameterHandle("clientId", classHandle);
+        int startHandle = rtiamb.getParameterHandle("startTime", classHandle);
+
+        parameters.add(idHandle, id);
+        parameters.add(startHandle, startT);
+
+        rtiamb.sendInteraction(classHandle, parameters, generateTag());
     }
 
     public static void main(String[] args) {

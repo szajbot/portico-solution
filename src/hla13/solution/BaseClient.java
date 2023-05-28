@@ -5,24 +5,16 @@ public class BaseClient {
     PetrolType petrolType;
     float fuelQuantity;
     boolean washOption;
-    double time;
-
-    public double getLastServiceEndTime() {
-        return lastServiceEndTime;
-    }
-
-    public void setLastServiceEndTime(double lastServiceEndTime) {
-        this.lastServiceEndTime = lastServiceEndTime;
-    }
-
+    double arriveTime;
+    int numberInQue;
     double lastServiceEndTime;
 
-    public BaseClient(int clientNumber, PetrolType petrolType, float fuelQuantity, boolean washOption, double time) {
+    public BaseClient(int clientNumber, PetrolType petrolType, float fuelQuantity, boolean washOption, double arriveTime) {
         this.id = clientNumber;
         this.petrolType = petrolType;
         this.fuelQuantity = fuelQuantity;
         this.washOption = washOption;
-        this.time = time;
+        this.arriveTime = arriveTime;
     }
 
     public BaseClient(int clientNumber, PetrolType petrolType, float fuelQuantity, boolean washOption) {
@@ -32,12 +24,20 @@ public class BaseClient {
         this.washOption = washOption;
     }
 
-    public double getTime() {
-        return time;
+    public double getLastServiceEndTime() {
+        return lastServiceEndTime;
     }
 
-    public void setTime(double time) {
-        this.time = time;
+    public void setLastServiceEndTime(double lastServiceEndTime) {
+        this.lastServiceEndTime = lastServiceEndTime;
+    }
+
+    public double getArriveTime() {
+        return arriveTime;
+    }
+
+    public void setArriveTime(double arriveTime) {
+        this.arriveTime = arriveTime;
     }
 
     public int getId() {
@@ -51,13 +51,15 @@ public class BaseClient {
     public float getFuelQuantity() {
         return fuelQuantity;
     }
+    public int getNumberInQue(){return numberInQue;}
+    public void setNumberInQue(int length){ this.numberInQue = length;}
 
     public boolean isWashOption() {
         return washOption;
     }
 
     public String explainYourself() {
-        return "Clientid:  " + this.id + " PetrolType:  " + this.petrolType + "  Fuel Quantity:   " + this.fuelQuantity + "  Wash option:   " + this.washOption + " at time:  " + this.time;
+        return "Clientid:  " + this.id + " PetrolType:  " + this.petrolType + "  Fuel Quantity:   " + this.fuelQuantity + "  Wash option:   " + this.washOption + " at time:  " + this.arriveTime;
     }
 
 }

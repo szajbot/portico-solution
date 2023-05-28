@@ -18,13 +18,15 @@ public class ClientsAmbassador extends NullFederateAmbassador {
     protected boolean isRegulating = false;
     protected boolean isConstrained = false;
     protected boolean isAdvancing = false;
-
     protected boolean isAnnounced = false;
-    protected boolean isReadyToRun = false;
 
+    protected boolean isReadyToRun = false;
     protected boolean running = true;
-    protected int startPetrolService = 0;
-    protected int stopPetrolService = 0;
+
+    protected int petrolService = 0;
+    protected int washService = 0;
+    protected int startPayment = 0;
+    protected int endPayment = 0;
 
 
     public ClientsAmbassador() {
@@ -37,7 +39,7 @@ public class ClientsAmbassador extends NullFederateAmbassador {
     }
 
     private void log(String message) {
-        System.out.println("FederateAmbassador: " + message);
+        System.out.println("ClientAmbassador: " + message);
     }
 
     public void synchronizationPointRegistrationFailed(String label) {
@@ -94,29 +96,92 @@ public class ClientsAmbassador extends NullFederateAmbassador {
                                    EventRetractionHandle eventRetractionHandle) {
         StringBuilder builder = new StringBuilder("Interaction Received from ");
 
-        if (interactionClass == startPetrolService) {
+        if (interactionClass == petrolService) {
             try {
-                builder.append("startPetrolService: ");
+                builder.append("PetrolService: ");
                 int clientId = EncodingHelpers.decodeInt(theInteraction.getValue(0));
-                double time = EncodingHelpers.decodeDouble(theInteraction.getValue(1));
-                builder.append("id=").append(clientId).append(", time=").append(time);
+                double startTime = EncodingHelpers.decodeDouble(theInteraction.getValue(1));
+                double endTime = EncodingHelpers.decodeDouble(theInteraction.getValue(2));
+                int queue = EncodingHelpers.decodeInt(theInteraction.getValue(3));
+                builder.append("id=")
+                        .append(clientId)
+                        .append(", Start=")
+                        .append(startTime)
+                        .append(", End=")
+                        .append(endTime)
+                        .append(", Que=")
+                        .append(queue);
                 for (Client cl : ClientsFederate.clients) {
                     if (cl.getId() == clientId) {
-                        cl.startPetrolService = time;
+                        cl.startPetrolService = startTime;
+                        cl.endPetrolService = endTime;
+                        cl.numberInPetrolQueue = queue;
                     }
                 }
 
             } catch (ArrayIndexOutOfBounds e) {
                 throw new RuntimeException(e);
             }
-        } else if (interactionClass == stopPetrolService) {
+        }else if (interactionClass == washService) {
             try {
+                builder.append("WashService: ");
                 int clientId = EncodingHelpers.decodeInt(theInteraction.getValue(0));
-                double time = EncodingHelpers.decodeDouble(theInteraction.getValue(1));
-
+                double startTime = EncodingHelpers.decodeDouble(theInteraction.getValue(1));
+                double endTime = EncodingHelpers.decodeDouble(theInteraction.getValue(2));
+                int queue = EncodingHelpers.decodeInt(theInteraction.getValue(3));
+                builder.append("id=")
+                        .append(clientId)
+                        .append(", Start=")
+                        .append(startTime)
+                        .append(", End=")
+                        .append(endTime)
+                        .append(", Que=")
+                        .append(queue);
                 for (Client cl : ClientsFederate.clients) {
                     if (cl.getId() == clientId) {
-                        cl.endPetrolService = time;
+                        cl.startWashing = startTime;
+                        cl.endWashing = endTime;
+                        cl.numberInWashingQueue = queue;
+                    }
+                }
+
+            } catch (ArrayIndexOutOfBounds e) {
+                throw new RuntimeException(e);
+            }
+        }else if (interactionClass == startPayment) {
+            try {
+                builder.append("StartPayment: ");
+                int clientId = EncodingHelpers.decodeInt(theInteraction.getValue(0));
+                double startTime = EncodingHelpers.decodeDouble(theInteraction.getValue(1));
+                builder.append("id=")
+                        .append(clientId)
+                        .append(", Start=")
+                        .append(startTime);
+                for (Client cl : ClientsFederate.clients) {
+                    if (cl.getId() == clientId) {
+                        cl.startPayment = startTime;
+                    }
+                }
+
+            } catch (ArrayIndexOutOfBounds e) {
+                throw new RuntimeException(e);
+            }
+        }else if (interactionClass == endPayment) {
+            try {
+                builder.append("EndPayment: ");
+                int clientId = EncodingHelpers.decodeInt(theInteraction.getValue(0));
+                double endTime = EncodingHelpers.decodeDouble(theInteraction.getValue(1));
+                int queue = EncodingHelpers.decodeInt(theInteraction.getValue(2));
+                builder.append("id=")
+                        .append(clientId)
+                        .append(", End=")
+                        .append(endTime)
+                        .append(", Que=")
+                        .append(queue);
+                for (Client cl : ClientsFederate.clients) {
+                    if (cl.getId() == clientId) {
+                        cl.endPayment = endTime;
+                        cl.numberInPaymentQueue = queue;
                     }
                 }
 
@@ -124,40 +189,8 @@ public class ClientsAmbassador extends NullFederateAmbassador {
                 throw new RuntimeException(e);
             }
         }
-//        // print the handle
-//        builder.append( " handle=" + interactionClass );
-//        // print the tag
-//        builder.append( ", tag=" + EncodingHelpers.decodeString(tag) );
-//        // print the time (if we have it) we'll get null if we are just receiving
-//        // a forwarded call from the other reflect callback above
-//        if( theTime != null )
-//        {
-//            builder.append( ", time=" + convertTime(theTime) );
-//        }
-//
-//        // print the parameer information
-//        builder.append( ", parameterCount=" + theInteraction.size() );
-//        builder.append( "\n" );
-//        for( int i = 0; i < theInteraction.size(); i++ )
-//        {
-//            try
-//            {
-//                // print the parameter handle
-//                builder.append( "\tparamHandle=" );
-//                builder.append( theInteraction.getParameterHandle(i) );
-//                // print the parameter value
-//                builder.append( ", paramValue=" );
-//                builder.append(
-//                        EncodingHelpers.decodeString(theInteraction.getValue(i)) );
-//                builder.append( "\n" );
-//            }
-//            catch( ArrayIndexOutOfBounds aioob )
-//            {
-//                // won't happen
-//            }
-//        }
 
-        log(builder.toString());
+            log(builder.toString());
+        }
+
     }
-
-}

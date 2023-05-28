@@ -43,10 +43,7 @@ public class GasStationAmbassador extends NullFederateAmbassador {
 
     protected int newClientHandle;
     protected ArrayList<Integer> newClientInstances = new ArrayList<>();
-//    protected int test2Handle = 0;
-//    protected int test3Handle = 0;
 
-//    protected ArrayList<ExternalEvent> externalEvents = new ArrayList<>();
     protected ArrayList<BaseClient> receivedClients = new ArrayList<>();
 
     class PairComparator implements Comparator<Pair<Integer, byte[]>> {
@@ -64,7 +61,7 @@ public class GasStationAmbassador extends NullFederateAmbassador {
     }
 
     private void log(String message) {
-        System.out.println("FederateAmbassador: " + message);
+        System.out.println("GasStationAmbassador: " + message);
     }
 
     public void synchronizationPointRegistrationFailed(String label) {
@@ -133,14 +130,16 @@ public class GasStationAmbassador extends NullFederateAmbassador {
                 PairComparator pairComparator = new PairComparator();
                 Collections.sort(listOfPairs, pairComparator);
 
-                receivedClients.add(new BaseClient(
+                BaseClient newClient = new BaseClient(
                         EncodingHelpers.decodeInt(listOfPairs.get(0).getValue()),
                         PetrolType.valueOf(EncodingHelpers.decodeString(listOfPairs.get(1).getValue())),
                         EncodingHelpers.decodeFloat(listOfPairs.get(2).getValue()),
                         EncodingHelpers.decodeBoolean(listOfPairs.get(3).getValue()),
                         time
-                        ));
+                );
 
+                receivedClients.add(newClient);
+                log(newClient.explainYourself());
 //                TODO if u wna to see what inside
 //                for (Pair<Integer, byte[]> pair : listOfPairs) {
 //                    System.out.println(pair.getKey() + ": " + pair.getValue());
@@ -153,34 +152,8 @@ public class GasStationAmbassador extends NullFederateAmbassador {
         } else {
             log("Some strange thing happen");
         }
-//        StringBuilder builder = new StringBuilder("Reflection for object:");
-//
-//        builder.append(" handle=" + theObject);
-//        builder.append(", tag=" + EncodingHelpers.decodeString(tag));
-//        if (theTime != null) {
-//            builder.append(", time=" + convertTime(theTime));
-//        }
-//
-//        builder.append(", attributeCount=" + theAttributes.size());
-//        builder.append("\n");
-//        for (int i = 0; i < theAttributes.size(); i++) {
-//            try {
-//                builder.append("\tattributeHandle=");
-//                builder.append(theAttributes.getAttributeHandle(i));
-//                builder.append(", attributeValue=");
-//                builder.append(EncodingHelpers.decodeString(theAttributes.getValue(i)));
-//                builder.append("\n");
-//            } catch (ArrayIndexOutOfBounds aioob) {
-//                // won't happen
-//            }
-//        }
-
-//        log(builder.toString());
     }
 
-//    public void removeObjectInstance(int theObject, byte[] userSuppliedTag) {
-//        log("Object Removed: handle=" + theObject);
-//    }
 
     public void removeObjectInstance(int theObject,
                                      byte[] userSuppliedTag,

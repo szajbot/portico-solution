@@ -25,14 +25,27 @@
   (interactions
     (class InteractionRoot reliable timestamp
       (class RTIprivate reliable timestamp)
-      (class StartPetrolService reliable timestamp TestSpace
+      (class PetrolService reliable timestamp TestSpace
                 (parameter clientId)
-                (parameter currentTime)
+                (parameter startTime)
+                (parameter endTime)
+                (parameter numberInPetrolQueue)
             )
-      (class StopPetrolService reliable timestamp TestSpace
-               (parameter clientId)
-               (parameter currentTime)
-            )
+      (class WashService reliable timestamp TestSpace
+              (parameter clientId)
+              (parameter startTime)
+              (parameter endTime)
+              (parameter numberInPetrolQueue)
+          )
+      (class StartPayment reliable timestamp TestSpace
+            (parameter clientId)
+            (parameter startTime)
+        )
+      (class EndPayment reliable timestamp TestSpace
+            (parameter clientId)
+            (parameter endTime)
+            (parameter numberInPetrolQueue)
+        )
     )
   )
 )
