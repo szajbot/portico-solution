@@ -27,7 +27,7 @@ public class ClientsFederate {
 
     private ArrayList<Client> clients = new ArrayList<>();
 
-    public void runFederate() throws RTIexception {
+    public void runFederate() throws RTIexception, InterruptedException {
 
         rtiamb = RtiFactoryFactory.getRtiFactory().createRtiAmbassador();
 
@@ -72,10 +72,13 @@ public class ClientsFederate {
 
 
         while (fedamb.running) {
+
             advanceTime(randomTime());
+            Thread.sleep(1000);
             int clientHandle = registerClient();
             clients.add(createClient(clientHandle, fedamb.federateTime + fedamb.federateLookahead));
             rtiamb.tick();
+
         }
 //        TODO this is for test use case
 //        for (int i = 0; i < ITERATIONS; i++) {
@@ -241,7 +244,7 @@ public class ClientsFederate {
 
     private double randomTime() {
         Random r = new Random();
-        return 1 + (9 * r.nextDouble());
+        return r.nextInt(50) + r.nextDouble();
     }
 
     private LogicalTime convertTime(double time) {
@@ -266,6 +269,8 @@ public class ClientsFederate {
             new ClientsFederate().runFederate();
         } catch (RTIexception rtIexception) {
             rtIexception.printStackTrace();
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
         }
     }
 
