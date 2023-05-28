@@ -64,7 +64,10 @@ public class ClientsFederate {
         log("Time Policy Enabled");
 
         publishClient();
-        log("Published and Subscribed");
+        log("Published Client");
+
+        subscribeInteractions();
+        log("Subscribe Gas Station");
 
 
         while (fedamb.running) {
@@ -175,7 +178,7 @@ public class ClientsFederate {
             //////////////////////////
             LogicalTime time = convertTime(timeStep);
             rtiamb.updateAttributeValues(clientHandle, attributes, "tag".getBytes(), time);
-            log("Registered Client, handle=" + clientHandle +", petrolT="+petrolType+", fuelQ="+fuelQuantity+", washO="+washOption);
+            log("Registered Client, handle=" + clientHandle + ", petrolT=" + petrolType + ", fuelQ=" + fuelQuantity + ", washO=" + washOption);
             return client;
         } catch (Exception e) {
             log("Client not created!");
@@ -211,6 +214,18 @@ public class ClientsFederate {
 
         // do the actual publication
         rtiamb.publishObjectClass(clientHandle, attributes);
+    }
+
+    private void subscribeInteractions() throws RTIexception {
+
+        int startPetrolService = rtiamb.getInteractionClassHandle("InteractionRoot.StartPetrolService");
+        fedamb.startPetrolService = startPetrolService;
+        rtiamb.subscribeInteractionClass(startPetrolService);
+
+        int stopPetrolService = rtiamb.getInteractionClassHandle("InteractionRoot.StopPetrolService");
+        fedamb.startPetrolService = stopPetrolService;
+        rtiamb.subscribeInteractionClass(stopPetrolService);
+
     }
 
     private void advanceTime(double timestep) throws RTIexception {

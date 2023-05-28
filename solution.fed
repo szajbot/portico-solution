@@ -22,5 +22,17 @@
       )
     )
   )
-
+  (interactions
+    (class InteractionRoot reliable timestamp
+      (class RTIprivate reliable timestamp)
+      (class StartPetrolService reliable timestamp TestSpace
+                (parameter clientId)
+                (parameter currentTime)
+            )
+      (class StopPetrolService reliable timestamp TestSpace
+               (parameter clientId)
+               (parameter currentTime)
+            )
+    )
+  )
 )
