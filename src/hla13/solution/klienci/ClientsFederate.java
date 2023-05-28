@@ -156,10 +156,10 @@ public class ClientsFederate {
             SuppliedAttributes attributes =
                     RtiFactoryFactory.getRtiFactory().createSuppliedAttributes();
 
-            byte[] id = EncodingHelpers.encodeString("clientId:" + clientHandle);
-            byte[] fuel = EncodingHelpers.encodeString("petrolType:" + petrolType);
-            byte[] quantity = EncodingHelpers.encodeString("fuelQuantity:" + fuelQuantity);
-            byte[] wash = EncodingHelpers.encodeString("washOption:" + washOption);
+            byte[] id = EncodingHelpers.encodeInt(clientHandle);
+            byte[] fuel = EncodingHelpers.encodeString(String.valueOf(petrolType));
+            byte[] quantity = EncodingHelpers.encodeFloat(fuelQuantity);
+            byte[] wash = EncodingHelpers.encodeBoolean(washOption);
 
             int classClient = rtiamb.getObjectClass(clientHandle);
             int idHandle = rtiamb.getAttributeHandle("clientId", classClient);
