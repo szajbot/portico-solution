@@ -74,13 +74,13 @@ public class GasStationAmbassador extends NullFederateAmbassador {
 
     public void announceSynchronizationPoint(String label, byte[] tag) {
         log("Synchronization point announced: " + label);
-        if (label.equals(READY_TO_RUN))
+        if (label.equals(GasStationFederate.READY_TO_RUN))
             this.isAnnounced = true;
     }
 
     public void federationSynchronized(String label) {
         log("Federation Synchronized: " + label);
-        if (label.equals(READY_TO_RUN))
+        if (label.equals(GasStationFederate.READY_TO_RUN))
             this.isReadyToRun = true;
     }
 

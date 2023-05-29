@@ -52,13 +52,13 @@ public class ClientsAmbassador extends NullFederateAmbassador {
 
     public void announceSynchronizationPoint(String label, byte[] tag) {
         log("Synchronization point announced: " + label);
-        if (label.equals(GasStationAmbassador.READY_TO_RUN))
+        if (label.equals(ClientsFederate.READY_TO_RUN))
             this.isAnnounced = true;
     }
 
     public void federationSynchronized(String label) {
         log("Federation Synchronized: " + label);
-        if (label.equals(GasStationAmbassador.READY_TO_RUN))
+        if (label.equals(ClientsFederate.READY_TO_RUN))
             this.isReadyToRun = true;
     }
 
