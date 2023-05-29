@@ -1,14 +1,17 @@
 package hla13.solution.kasy;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.Random;
 
 public class Cash {
 
-    private ArrayList<Client> queue = new ArrayList<>();
+    private LinkedList<Client> queue = new LinkedList<>();
     private double nextPaymentTime;
-    Random random;
+    Random random = new Random();
     Boolean isInUse = false;
+
+    public Cash(){}
 
     public Boolean getInUse() {
         return isInUse;
@@ -18,7 +21,7 @@ public class Cash {
         isInUse = inUse;
     }
 
-    public ArrayList<Client> getQueue() {
+    public LinkedList<Client> getQueue() {
         return queue;
     }
 
@@ -34,6 +37,6 @@ public class Cash {
     }
 
     public Double serviceTime() {
-        return 3 + 20 * random.nextDouble();
+        return 20 * random.nextDouble() + random.nextInt(20);
     }
 }

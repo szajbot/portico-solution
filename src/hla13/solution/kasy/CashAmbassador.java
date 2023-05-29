@@ -39,7 +39,7 @@ public class CashAmbassador extends NullFederateAmbassador {
     }
 
     private void log(String message) {
-        System.out.println("ClientAmbassador: " + message);
+        System.out.println("CashAmbassador: " + message);
     }
 
     public void synchronizationPointRegistrationFailed(String label) {

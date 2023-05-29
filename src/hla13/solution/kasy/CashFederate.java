@@ -99,7 +99,7 @@ public class CashFederate {
 
     private void serviceClientsSendInteractionsAndUpdateQueueInCash(Cash cash, double timeToAdvance) {
         while (cash.getNextPaymentTime() < timeToAdvance && !cash.getQueue().isEmpty()) {
-            Client endedPaymentClient = cash.getQueue().get(0);
+            Client endedPaymentClient = cash.getQueue().pop();
             log("Payment service ended in client nr: : " + endedPaymentClient.getId() + ", at time: " + cash.getNextPaymentTime());
             endedPaymentClient.setPaymentTime(cash.getNextPaymentTime());
             double endPetrolService = endedPaymentClient.getPaymentTime();
@@ -123,11 +123,11 @@ public class CashFederate {
 
     public void addClientToQueue(Client receivedClient) {
         if(cash.getQueue().isEmpty()){
-            cash.getQueue().add(receivedClient);
+            cash.addToQueue(receivedClient);
         }else{
-            cash.getQueue().add(receivedClient);
+            cash.addToQueue(receivedClient);
             cash.getQueue().sort(Comparator.comparingDouble(Client::getArriveTime));
-            receivedClient.setNumberInQue(cash.getQueue().indexOf(receivedClient));
+            receivedClient.setNumberInQue(cash.getQueue().indexOf(receivedClient)+1);
         }
     }
 
@@ -170,13 +170,13 @@ public class CashFederate {
 
         this.rtiamb.enableTimeRegulation(currentTime, lookahead);
 
-        while (fedamb.isRegulating == false) {
+        while (!fedamb.isRegulating) {
             rtiamb.tick();
         }
 
         this.rtiamb.enableTimeConstrained();
 
-        while (fedamb.isConstrained == false) {
+        while (!fedamb.isConstrained) {
             rtiamb.tick();
         }
     }
