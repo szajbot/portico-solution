@@ -12,7 +12,9 @@ import org.portico.impl.hla13.types.DoubleTime;
 
 public class ClientsAmbassador extends NullFederateAmbassador {
 
+    public boolean isReadyToEnd = false;
     protected double federateTime = 0.0;
+    protected double grantedTime = 0.0;
     protected double federateLookahead = 1.0;
 
     protected boolean isRegulating = false;

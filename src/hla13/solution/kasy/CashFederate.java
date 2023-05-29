@@ -11,6 +11,7 @@ import java.io.File;
 import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.util.Comparator;
+import java.util.concurrent.CountDownLatch;
 
 public class CashFederate {
 
@@ -21,6 +22,8 @@ public class CashFederate {
     private RTIambassador rtiamb;
     private CashAmbassador fedamb;
     private final double timeStep = 10.0;
+    private final double timeToStop = 200;
+    private double timeOfInactivity = 0;
     private final Cash cash = new Cash();
 
 
@@ -42,6 +45,7 @@ public class CashFederate {
 
         fedamb = new CashAmbassador();
         rtiamb.joinFederationExecution(FEDERATE_NAME, FEDERATION_NAME, fedamb);
+        CountDownLatch completionSignal = new CountDownLatch(3);
         log("Joined Federation as " + FEDERATE_NAME);
 
         rtiamb.registerFederationSynchronizationPoint(READY_TO_RUN, null);
@@ -73,16 +77,32 @@ public class CashFederate {
                     //log(receivedClient.explainYourself());
                     addClientToQueue(receivedClient);
                     checkEndedServiceForPayment(timeToAdvance);
-
                 }
                 fedamb.receivedClients.clear();
+
+            }
+            if (!cash.getQueue().isEmpty()){
+                checkEndedServiceForPayment(timeToAdvance);
+
             }
             if (fedamb.grantedTime == timeToAdvance) {
                 timeToAdvance += fedamb.federateLookahead;
                 fedamb.federateTime = timeToAdvance;
-            }
 
+            }
             rtiamb.tick();
+        }
+
+        rtiamb.resignFederationExecution(ResignAction.NO_ACTION);
+        log("Resigned from Federation");
+
+        try {
+            rtiamb.destroyFederationExecution("ExampleFederation");
+            log("Destroyed Federation");
+        } catch (FederationExecutionDoesNotExist dne) {
+            log("No need to destroy federation, it doesn't exist");
+        } catch (FederatesCurrentlyJoined fcj) {
+            log("Didn't destroy federation, federates still joined");
         }
 
     }

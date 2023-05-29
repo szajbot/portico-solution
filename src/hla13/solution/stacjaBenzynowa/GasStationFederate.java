@@ -18,6 +18,7 @@ import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedList;
+import java.util.concurrent.CountDownLatch;
 
 public class GasStationFederate {
 
@@ -53,6 +54,7 @@ public class GasStationFederate {
 
         fedamb = new GasStationAmbassador();
         rtiamb.joinFederationExecution(FEDERATE_NAME, FEDERATION_NAME, fedamb);
+        CountDownLatch completionSignal = new CountDownLatch(3);
         log("Joined Federation as " + FEDERATE_NAME);
 
         rtiamb.registerFederationSynchronizationPoint(READY_TO_RUN, null);
@@ -80,6 +82,7 @@ public class GasStationFederate {
             advanceTime(timeToAdvance);
 
             if (fedamb.receivedClients.size() > 0) {
+
                 for (BaseClient receivedClient : fedamb.receivedClients) {
 
                     //log(receivedClient.explainYourself());
@@ -89,12 +92,26 @@ public class GasStationFederate {
                 }
                 fedamb.receivedClients.clear();
             }
+            if (!onDistributors.get(0).getQueue().isEmpty() || !benzineDistributors.get(0).getQueue().isEmpty() || !washes.get(0).getQueue().isEmpty()) {
+                checkForEndedServiceTime(timeToAdvance);
+            }
             if (fedamb.grantedTime == timeToAdvance) {
                 timeToAdvance += fedamb.federateLookahead;
                 fedamb.federateTime = timeToAdvance;
             }
-
             rtiamb.tick();
+        }
+
+        rtiamb.resignFederationExecution(ResignAction.NO_ACTION);
+        log("Resigned from Federation");
+
+        try {
+            rtiamb.destroyFederationExecution("ExampleFederation");
+            log("Destroyed Federation");
+        } catch (FederationExecutionDoesNotExist dne) {
+            log("No need to destroy federation, it doesn't exist");
+        } catch (FederatesCurrentlyJoined fcj) {
+            log("Didn't destroy federation, federates still joined");
         }
 
     }

@@ -14,18 +14,21 @@ import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Random;
+import java.util.concurrent.CountDownLatch;
 
 public class ClientsFederate {
 
     private static final String FEDERATION_NAME = "GasStationSimulateFederation";
     private static final String FEDERATE_NAME = "ClientsFederate";
-    public static final int ITERATIONS = 20;
+    public static final int ITERATIONS = 10;
     public static final String READY_TO_RUN = "ReadyToRun";
+    private static final String READY_TO_END = "ReadyToEnd";
     private RTIambassador rtiamb;
     private ClientsAmbassador fedamb;
-    private final double timeStep = 10.0;
+
 
     public static final ArrayList<Client> clients = new ArrayList<>();
+    private double timeStep = 10.0;
 
     public void runFederate() throws RTIexception, InterruptedException {
 
@@ -48,8 +51,9 @@ public class ClientsFederate {
         log("Joined Federation as " + FEDERATE_NAME);
 
         rtiamb.registerFederationSynchronizationPoint(READY_TO_RUN, null);
+        //rtiamb.registerFederationSynchronizationPoint(READY_TO_END, null);
 
-        while (fedamb.isAnnounced == false) {
+        while (!fedamb.isAnnounced) {
             rtiamb.tick();
         }
 
@@ -57,7 +61,7 @@ public class ClientsFederate {
 
         rtiamb.synchronizationPointAchieved(READY_TO_RUN);
         log("Achieved sync point: " + READY_TO_RUN + ", waiting for federation...");
-        while (fedamb.isReadyToRun == false) {
+        while (!fedamb.isReadyToRun) {
             rtiamb.tick();
         }
 
@@ -71,26 +75,46 @@ public class ClientsFederate {
         log("Subscribe Gas Station");
 
 
-        while (fedamb.running) {
-
+//        while (fedamb.running) {
+//
+//            advanceTime(randomTime());
+//            Thread.sleep(1000);
+//            int clientHandle = registerClient();
+//            clients.add(createClient(clientHandle, fedamb.federateTime + fedamb.federateLookahead));
+//            rtiamb.tick();
+//
+//        }
+ //       TODO this is for test use case
+        for (int i = 0; i < ITERATIONS; i++) {
             advanceTime(randomTime());
-            Thread.sleep(1000);
+            //Thread.sleep(1000);
             int clientHandle = registerClient();
             clients.add(createClient(clientHandle, fedamb.federateTime + fedamb.federateLookahead));
             rtiamb.tick();
-
         }
-//        TODO this is for test use case
-//        for (int i = 0; i < ITERATIONS; i++) {
-//            // register new clients
-//            int clentHandle = registerClient();
-//            clients.add(createClient(clentHandle));
-//
-//
-//            // 9.3 request a time advance and wait until we get it
-//            advanceTime(1.0);
-//            log("Time Advanced to " + fedamb.federateTime);
+
+        while (fedamb.running) {
+            double timeToAdvance = fedamb.federateTime + timeStep;
+            advanceTime(timeToAdvance);
+
+            if (fedamb.grantedTime == timeToAdvance) {
+                timeToAdvance += fedamb.federateLookahead;
+                fedamb.federateTime = timeToAdvance;
+            }
+            rtiamb.tick();
+        }
+
+//        rtiamb.synchronizationPointAchieved(READY_TO_END);
+//        log("Achieved sync point: " + READY_TO_END + ", waiting for federation...");
+//        while (!fedamb.isReadyToEnd) {
+//            rtiamb.tick();
+//            log("#####");
 //        }
+
+        for (Client client : clients){
+            log(client.explainYourself());
+            log(client.printAttributes());
+        }
 
         for (Client client : clients) {
             deleteObject(client.getId());
