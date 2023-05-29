@@ -192,7 +192,6 @@ public class GasStationFederate {
             if (endedServiceClient.isWashOption()) {
                 sendClientToWashQueue(endedServiceClient);
             }
-//                  TODO send to wash or cash !!!IMPORTANT SEND TO CASH
             try {
                 sendInteractionService("PetrolService",endedServiceClient.getId(), endedServiceClient.getNumberInQue(), startPetrolService, endPetrolService);
                 if(!endedServiceClient.isWashOption()){

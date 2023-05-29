@@ -19,6 +19,6 @@ public class Wash extends ObjectOnStation {
 
     public Double serviceTime() {
 //        random double from 10 to 30
-        return 10 + (30 - 10) * random.nextDouble();
+        return 10 + 20 * random.nextDouble();
     }
 }

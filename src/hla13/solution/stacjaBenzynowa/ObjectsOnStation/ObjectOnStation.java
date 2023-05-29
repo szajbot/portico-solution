@@ -9,6 +9,8 @@ public class ObjectOnStation {
 
     String name;
     LinkedList<BaseClient> queue;
+    double nextServiceTime;
+    Boolean isInUse = false;
 
     public Boolean getInUse() {
         return isInUse;
@@ -18,19 +20,12 @@ public class ObjectOnStation {
         isInUse = inUse;
     }
 
-    Boolean isInUse = false;
-
-
-
-    public double getNextServiceTime() {
-        return nextServiceTime;
-    }
+    public double getNextServiceTime() {return nextServiceTime;}
 
     public void setNextServiceTime(double nextServiceTime) {
         this.nextServiceTime = nextServiceTime;
     }
 
-    double nextServiceTime;
 
     public String getName() {
         return name;
