@@ -11,19 +11,18 @@ import java.io.File;
 import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.util.Comparator;
-import java.util.concurrent.CountDownLatch;
 
 public class CashFederate {
 
     private static final String FEDERATION_NAME = "GasStationSimulateFederation";
     private static final String FEDERATE_NAME = "CashFederate";
     public static final String READY_TO_RUN = "ReadyToRun";
+    public static int ITERATIONS = 10;
 
     private RTIambassador rtiamb;
     private CashAmbassador fedamb;
     private final double timeStep = 10.0;
-    private final double timeToStop = 200;
-    private double timeOfInactivity = 0;
+    private double counter = 0;
     private final Cash cash = new Cash();
 
 
@@ -45,7 +44,6 @@ public class CashFederate {
 
         fedamb = new CashAmbassador();
         rtiamb.joinFederationExecution(FEDERATE_NAME, FEDERATION_NAME, fedamb);
-        CountDownLatch completionSignal = new CountDownLatch(3);
         log("Joined Federation as " + FEDERATE_NAME);
 
         rtiamb.registerFederationSynchronizationPoint(READY_TO_RUN, null);
@@ -90,6 +88,11 @@ public class CashFederate {
                 fedamb.federateTime = timeToAdvance;
 
             }
+            if (counter == ITERATIONS){
+                sendInteractionStopSim();
+                fedamb.running = false;
+            }
+
             rtiamb.tick();
         }
 
@@ -97,7 +100,7 @@ public class CashFederate {
         log("Resigned from Federation");
 
         try {
-            rtiamb.destroyFederationExecution("ExampleFederation");
+            rtiamb.destroyFederationExecution(FEDERATE_NAME);
             log("Destroyed Federation");
         } catch (FederationExecutionDoesNotExist dne) {
             log("No need to destroy federation, it doesn't exist");
@@ -126,6 +129,7 @@ public class CashFederate {
 
             try {
                 sendInteractionEndPayment(endedPaymentClient.getId(), endPetrolService, endedPaymentClient.getNumberInQue());
+                counter++;
 
             } catch (RTIexception e) {
                 throw new RuntimeException(e);
@@ -176,12 +180,18 @@ public class CashFederate {
     private void publishAndSubscribe() throws RTIexception {
 
         int startPayment = rtiamb.getInteractionClassHandle("InteractionRoot.StartPayment");
+        fedamb.startPayment = startPayment;
         rtiamb.subscribeInteractionClass(startPayment);
 
+        int iters = rtiamb.getInteractionClassHandle("InteractionRoot.Iterations");
+        fedamb.iters = iters;
+        rtiamb.subscribeInteractionClass(iters);
 
         int endPayment = rtiamb.getInteractionClassHandle("InteractionRoot.EndPayment");
         rtiamb.publishInteractionClass(endPayment);
 
+        int stopSim = rtiamb.getInteractionClassHandle("InteractionRoot.StopSim");
+        rtiamb.publishInteractionClass(stopSim);
     }
 
     private void enableTimePolicy() throws RTIexception {
@@ -241,6 +251,15 @@ public class CashFederate {
 
         rtiamb.sendInteraction(classHandle, parameters, generateTag());
     }
+    private void sendInteractionStopSim() throws RTIexception {
+        SuppliedParameters parameters =
+                RtiFactoryFactory.getRtiFactory().createSuppliedParameters();
+
+        int classHandle = rtiamb.getInteractionClassHandle("InteractionRoot.StopSim");
+
+        rtiamb.sendInteraction(classHandle, parameters, generateTag());
+    }
+
 
     public static void main(String[] args) {
         try {

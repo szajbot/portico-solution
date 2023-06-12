@@ -59,7 +59,7 @@ public class BaseClient {
     }
 
     public String explainYourself() {
-        return "Clientid:  " + this.id + " PetrolType:  " + this.petrolType + "  Fuel Quantity:   " + this.fuelQuantity + "  Wash option:   " + this.washOption + " at time:  " + this.arriveTime;
+        return "Clientid:  " + this.id + " PetrolType:  " + this.petrolType + "  Fuel Quantity:   " + this.fuelQuantity + "  Wash option:   " + this.washOption;
     }
 
 }

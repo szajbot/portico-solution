@@ -54,7 +54,6 @@ public class GasStationFederate {
 
         fedamb = new GasStationAmbassador();
         rtiamb.joinFederationExecution(FEDERATE_NAME, FEDERATION_NAME, fedamb);
-        CountDownLatch completionSignal = new CountDownLatch(3);
         log("Joined Federation as " + FEDERATE_NAME);
 
         rtiamb.registerFederationSynchronizationPoint(READY_TO_RUN, null);
@@ -106,7 +105,7 @@ public class GasStationFederate {
         log("Resigned from Federation");
 
         try {
-            rtiamb.destroyFederationExecution("ExampleFederation");
+            rtiamb.destroyFederationExecution(FEDERATE_NAME);
             log("Destroyed Federation");
         } catch (FederationExecutionDoesNotExist dne) {
             log("No need to destroy federation, it doesn't exist");
@@ -302,6 +301,9 @@ public class GasStationFederate {
 
         int interactionStartPayment = rtiamb.getInteractionClassHandle("InteractionRoot.StartPayment");
         rtiamb.publishInteractionClass(interactionStartPayment);
+
+        int stopSim = rtiamb.getInteractionClassHandle("InteractionRoot.StopSim");
+        rtiamb.subscribeInteractionClass(stopSim);
     }
 
     private void enableTimePolicy() throws RTIexception {

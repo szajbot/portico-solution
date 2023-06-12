@@ -196,25 +196,11 @@ public class GasStationAmbassador extends NullFederateAmbassador {
                                    LogicalTime theTime,
                                    EventRetractionHandle eventRetractionHandle) {
 
-////        TODO add more interactions then do proper log builder
-//        StringBuilder builder = new StringBuilder("Interaction Received:");
-//        log(builder.toString());
-//
-//        if (interactionClass == newClientHandle) {
-//            try {
-//                log(String.valueOf(theInteraction.size()));
-//                Integer number = EncodingHelpers.decodeInt(theInteraction.getValue(0));
-//                String message = EncodingHelpers.decodeString(theInteraction.getValue(1));
-//                double time = convertTime(theTime);
-//                ArrayList<String> messages = new ArrayList<>();
-//                ArrayList<Integer> numbers = new ArrayList<>();
-//                messages.add(message);
-//                numbers.add(number);
-//                externalEvents.add(new ExternalEvent(numbers, messages, ExternalEvent.EventType.NEW_CLIENT, time));
-//            } catch (ArrayIndexOutOfBounds ignored) {
-//
-//            }
-//        }
+        StringBuilder builder = new StringBuilder("Interaction Received:");
+        builder.append("Cash ");
+        running = false;
+        builder.append("*** STOP SIM ***");
+        log(builder.toString());
     }
 
 }

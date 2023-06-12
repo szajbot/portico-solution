@@ -10,9 +10,13 @@ import org.portico.impl.hla13.types.DoubleTime;
 
 import java.util.ArrayList;
 
+import static hla13.solution.kasy.CashFederate.ITERATIONS;
+
 
 public class CashAmbassador extends NullFederateAmbassador {
 
+    public int startPayment = 0;
+    public int iters = 0;
     protected double federateTime = 0.0;
     protected double grantedTime = 0.0;
     protected double federateLookahead = 1.0;
@@ -96,23 +100,35 @@ public class CashAmbassador extends NullFederateAmbassador {
                                    EventRetractionHandle eventRetractionHandle) {
         StringBuilder builder = new StringBuilder("Interaction Received from ");
 
+        if(interactionClass == startPayment){
+            try {
+                builder.append("StartPayment: ");
+                int clientId = EncodingHelpers.decodeInt(theInteraction.getValue(0));
+                double startTime = EncodingHelpers.decodeDouble(theInteraction.getValue(1));
+                builder.append("id=")
+                        .append(clientId)
+                        .append(", Start=")
+                        .append(startTime);
 
-        try {
-            builder.append("StartPayment: ");
-            int clientId = EncodingHelpers.decodeInt(theInteraction.getValue(0));
-            double startTime = EncodingHelpers.decodeDouble(theInteraction.getValue(1));
-            builder.append("id=")
-                    .append(clientId)
-                    .append(", Start=")
-                    .append(startTime);
+                Client newClient = new Client(clientId,startTime);
 
-            Client newClient = new Client(clientId,startTime);
+                receivedClients.add(newClient);
+                log(newClient.explainYourself());
 
-            receivedClients.add(newClient);
-            log(newClient.explainYourself());
+            } catch (ArrayIndexOutOfBounds e) {
+                throw new RuntimeException(e);
+            }
+        }else if(interactionClass == iters){
+            try {
+                builder.append("ITERATIONS: ");
+                int iter = EncodingHelpers.decodeInt(theInteraction.getValue(0));
+                builder.append(iter);
 
-        } catch (ArrayIndexOutOfBounds e) {
-            throw new RuntimeException(e);
+                ITERATIONS = iter;
+
+            } catch (ArrayIndexOutOfBounds e) {
+                throw new RuntimeException(e);
+            }
         }
 
         log(builder.toString());

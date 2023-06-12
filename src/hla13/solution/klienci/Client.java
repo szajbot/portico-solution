@@ -26,15 +26,15 @@ public class Client extends BaseClient {
 
         result.append("WashQue=").append(this.numberInWashingQueue)
                 .append(", PetrolQue=").append(this.numberInPetrolQueue)
-                .append(", PaymentQue").append(this.numberInPaymentQueue)
-                .append(", StartTime:   ").append(this.startPetrolService)
-                .append(", EndPetrol").append(this.endPetrolService);
+                .append(", PaymentQue=").append(this.numberInPaymentQueue)
+                .append(", StartTime=").append(this.startPetrolService)
+                .append(", EndPetrol=").append(this.endPetrolService);
         if (startWashing!=0){
-            result.append(", StartWash").append(this.startWashing)
-                    .append(", EndWash").append(this.endWashing);
+            result.append(", StartWash=").append(this.startWashing)
+                    .append(", EndWash=").append(this.endWashing);
         }
-        result.append(", StartPayment").append(this.startPayment)
-                .append(", EndPayment").append(this.endPayment);
+        result.append(", StartPayment=").append(this.startPayment)
+                .append(", EndPayment=").append(this.endPayment);
 
         return result.toString();
     }

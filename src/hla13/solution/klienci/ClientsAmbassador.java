@@ -9,10 +9,11 @@ import hla.rti.jlc.NullFederateAmbassador;
 import hla13.solution.stacjaBenzynowa.GasStationAmbassador;
 import org.portico.impl.hla13.types.DoubleTime;
 
+import static hla13.solution.klienci.ClientsFederate.ITERATIONS;
+
 
 public class ClientsAmbassador extends NullFederateAmbassador {
 
-    public boolean isReadyToEnd = false;
     protected double federateTime = 0.0;
     protected double grantedTime = 0.0;
     protected double federateLookahead = 1.0;
@@ -29,6 +30,7 @@ public class ClientsAmbassador extends NullFederateAmbassador {
     protected int washService = 0;
     protected int startPayment = 0;
     protected int endPayment = 0;
+    protected int stopSim = 0;
 
 
     public ClientsAmbassador() {
@@ -190,9 +192,13 @@ public class ClientsAmbassador extends NullFederateAmbassador {
             } catch (ArrayIndexOutOfBounds e) {
                 throw new RuntimeException(e);
             }
+        } else if (interactionClass == stopSim) {
+            builder.append("Cash ");
+            running = false;
+            builder.append("*** STOP SIM ***");
         }
 
-            log(builder.toString());
+        log(builder.toString());
         }
 
     }

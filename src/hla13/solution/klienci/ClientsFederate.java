@@ -14,15 +14,13 @@ import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Random;
-import java.util.concurrent.CountDownLatch;
 
 public class ClientsFederate {
 
     private static final String FEDERATION_NAME = "GasStationSimulateFederation";
     private static final String FEDERATE_NAME = "ClientsFederate";
-    public static final int ITERATIONS = 10;
+    public static final int ITERATIONS = 100;
     public static final String READY_TO_RUN = "ReadyToRun";
-    private static final String READY_TO_END = "ReadyToEnd";
     private RTIambassador rtiamb;
     private ClientsAmbassador fedamb;
 
@@ -85,6 +83,7 @@ public class ClientsFederate {
 //
 //        }
  //       TODO this is for test use case
+        sendInteractionIterations(ITERATIONS);
         for (int i = 0; i < ITERATIONS; i++) {
             advanceTime(randomTime());
             //Thread.sleep(1000);
@@ -104,13 +103,6 @@ public class ClientsFederate {
             rtiamb.tick();
         }
 
-//        rtiamb.synchronizationPointAchieved(READY_TO_END);
-//        log("Achieved sync point: " + READY_TO_END + ", waiting for federation...");
-//        while (!fedamb.isReadyToEnd) {
-//            rtiamb.tick();
-//            log("#####");
-//        }
-
         for (Client client : clients){
             log(client.explainYourself());
             log(client.printAttributes());
@@ -126,7 +118,7 @@ public class ClientsFederate {
         log("Resigned from Federation");
 
         try {
-            rtiamb.destroyFederationExecution("ExampleFederation");
+            rtiamb.destroyFederationExecution(FEDERATE_NAME);
             log("Destroyed Federation");
         } catch (FederationExecutionDoesNotExist dne) {
             log("No need to destroy federation, it doesn't exist");
@@ -241,6 +233,9 @@ public class ClientsFederate {
 
         // do the actual publication
         rtiamb.publishObjectClass(clientHandle, attributes);
+
+        int interactionIterations = rtiamb.getInteractionClassHandle("InteractionRoot.Iterations");
+        rtiamb.publishInteractionClass(interactionIterations);
     }
 
     private void subscribeInteractions() throws RTIexception {
@@ -261,6 +256,24 @@ public class ClientsFederate {
         fedamb.endPayment = endPayment;
         rtiamb.subscribeInteractionClass(endPayment);
 
+        int stopSim = rtiamb.getInteractionClassHandle("InteractionRoot.StopSim");
+        fedamb.stopSim = stopSim;
+        rtiamb.subscribeInteractionClass(stopSim);
+
+    }
+    private void sendInteractionIterations(int iter)throws RTIexception {
+        SuppliedParameters parameters =
+                RtiFactoryFactory.getRtiFactory().createSuppliedParameters();
+
+        byte[] i = EncodingHelpers.encodeInt(iter);
+
+
+        int classHandle = rtiamb.getInteractionClassHandle("InteractionRoot.Iterations");
+        int iHandle = rtiamb.getParameterHandle("iter", classHandle);
+
+        parameters.add(iHandle, i);
+
+        rtiamb.sendInteraction(classHandle, parameters, generateTag());
     }
 
     private void advanceTime(double timestep) throws RTIexception {

@@ -46,6 +46,11 @@
             (parameter endTime)
             (parameter numberInPetrolQueue)
         )
+      (class StopSim reliable timestamp TestSpace
+          )
+      (class Iterations reliable timestamp TestSpace
+            (parameter iter)
+          )
     )
   )
 )
