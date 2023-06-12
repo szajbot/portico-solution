@@ -17,7 +17,7 @@ public class CashFederate {
     private static final String FEDERATION_NAME = "GasStationSimulateFederation";
     private static final String FEDERATE_NAME = "CashFederate";
     public static final String READY_TO_RUN = "ReadyToRun";
-    public static int ITERATIONS = 10;
+    public static int ITERATIONS = 100;
 
     private RTIambassador rtiamb;
     private CashAmbassador fedamb;

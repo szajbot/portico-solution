@@ -8,8 +8,17 @@ import hla13.solution.PetrolType;
 import org.portico.impl.hla13.types.DoubleTime;
 import org.portico.impl.hla13.types.DoubleTimeInterval;
 
+import org.jfree.chart.ChartFactory;
+import org.jfree.chart.ChartUtilities;
+import org.jfree.chart.JFreeChart;
+import org.jfree.chart.plot.PlotOrientation;
+import org.jfree.data.xy.DefaultXYDataset;
+import org.jfree.data.xy.XYDataset;
+
+import java.awt.*;
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
@@ -113,6 +122,7 @@ public class ClientsFederate {
             log("Deleted Object, handle=" + client.getId());
         }
 
+        sumUp();
 
         rtiamb.resignFederationExecution(ResignAction.NO_ACTION);
         log("Resigned from Federation");
@@ -126,6 +136,63 @@ public class ClientsFederate {
             log("Didn't destroy federation, federates still joined");
         }
 
+    }
+
+    private void sumUp() {
+
+        double[] petrolQueueTimes = new double[clients.size()];
+        double[] washQueueTimes = new double[clients.size()];
+        double[] paymentQueueTimes = new double[clients.size()];
+        double[] petrolQueuePositions = new double[clients.size()];
+        double[] washQueuePositions = new double[clients.size()];
+        double[] paymentQueuePositions = new double[clients.size()];
+
+        for (int i = 0; i < clients.size(); i++) {
+            Client clientData = clients.get(i);
+            petrolQueueTimes[i] = clientData.endPetrolService - clientData.startPetrolService;
+            washQueueTimes[i] = clientData.endWashing - clientData.startWashing;
+            paymentQueueTimes[i] = clientData.endPayment - clientData.startPayment;
+            petrolQueuePositions[i] = clientData.numberInPetrolQueue;
+            washQueuePositions[i] = clientData.numberInWashingQueue;
+            paymentQueuePositions[i] = clientData.numberInPaymentQueue;
+        }
+
+        createLineChart(petrolQueueTimes, "Spend Time", "Client", "Time", "Time Spent in Petrol Queue");
+        createLineChart(washQueueTimes, "Spend Time", "Client", "Time", "Time Spent in Wash Queue");
+        createLineChart(paymentQueueTimes, "Spend Time", "Client", "Time", "Time Spent in Payment Queue");
+
+        createLineChart(petrolQueuePositions, "Place in Petrol Queue", "Client", "Position", "Position in Queue (Petrol)");
+        createLineChart(washQueuePositions, "Place in Wash Queue", "Client", "Position", "Position in Queue (Wash)");
+        createLineChart(paymentQueuePositions, "Place in Payment Queue", "Client", "Position", "Position in Queue (Payment)");
+    }
+
+    private static void createLineChart(double[] data, String title, String xLabel, String yLabel, String fileName) {
+        XYDataset dataset = createDataset(data);
+        JFreeChart chart = ChartFactory.createXYLineChart(title, xLabel, yLabel, dataset, PlotOrientation.VERTICAL, true, true, false);
+        chart.setBackgroundPaint(Color.white);
+        chart.getTitle().setPaint(Color.black);
+
+        try {
+            ChartUtilities.saveChartAsPNG(new File(fileName + ".png"), chart, 500, 300);
+            System.out.println("Chart saved as " + fileName + ".png");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static XYDataset createDataset(double[] data) {
+        DefaultXYDataset dataset = new DefaultXYDataset();
+        double[][] seriesData = new double[2][data.length];
+        double[] xValues = new double[data.length];
+
+        for (int i = 0; i < data.length; i++) {
+            xValues[i] = i;
+            seriesData[0][i] = xValues[i];
+            seriesData[1][i] = data[i];
+        }
+
+        dataset.addSeries("Data", seriesData);
+        return dataset;
     }
 
     private void waitForUser() {
